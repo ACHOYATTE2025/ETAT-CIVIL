@@ -3,8 +3,12 @@ package com.saasdemo.backend.entity;
 
 import java.time.Instant;
 
+import com.saasdemo.backend.enums.GenderSLC;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,6 +30,10 @@ public class Validation {
     private String code;
     private Instant creationCode;
     private Instant expirationCode;
+
+    @Enumerated(EnumType.STRING)
+    private GenderSLC genreSlc;
+    
     @ManyToOne(cascade = CascadeType.ALL)
     private Utilisateur utilisateur;
 }

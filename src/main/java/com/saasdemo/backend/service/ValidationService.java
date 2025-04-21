@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.entity.Validation;
+import com.saasdemo.backend.enums.GenderSLC;
 import com.saasdemo.backend.repository.ValidationRepository;
 
 @Service
@@ -25,11 +26,17 @@ public class ValidationService {
     }
 
     //code making
-    public void createCode(Utilisateur subscriber) {
+    public void createCode(Utilisateur subscriber, GenderSLC signup ) {
 
         Validation validation = new Validation();
         validation.setUtilisateur(subscriber);
         this.accountX=subscriber;
+        if(signup.equals(GenderSLC.SIGNUP)){
+            validation.setGenreSlc(GenderSLC.SIGNUP);
+        }
+        else if(signup.equals(GenderSLC.LOGIN)){validation.setGenreSlc(GenderSLC.LOGIN);}
+        else{validation.setGenreSlc(GenderSLC.USER_CREATION);}
+       
 
 
         Instant now = Instant.now();

@@ -37,12 +37,14 @@ private final SubscriptionGuardFilter subscriptionGuardFilter;
      authorize
                               .requestMatchers(HttpMethod.POST,"/signup").permitAll()
                               .requestMatchers("/v3/**", "/swagger-ui/**").permitAll()//permettre l'affichage de swagger
-                              .requestMatchers(HttpMethod.POST,"/reactiveCompte").permitAll()
-                              .requestMatchers(HttpMethod.POST,"/activationCompte").permitAll()
+                              .requestMatchers(HttpMethod.POST,"/accountReactivation").permitAll()
+                              .requestMatchers(HttpMethod.POST,"/accountActivation").permitAll()
                               .requestMatchers(HttpMethod.POST,"/login").permitAll()
+                              .requestMatchers(HttpMethod.POST,"/activationLogin").permitAll()
                               .requestMatchers(HttpMethod.POST,"/resetPassword").permitAll()
                               .requestMatchers(HttpMethod.POST,"/newPassword").permitAll()
                               .requestMatchers(HttpMethod.GET,"/actuator/**").permitAll()
+                              
                               .anyRequest().authenticated())
                               .sessionManagement(httpSecuritySessionManagementConfigurer ->
                                         httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

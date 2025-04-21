@@ -1,5 +1,4 @@
 package com.saasdemo.backend.service;
-
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -8,21 +7,27 @@ import com.saasdemo.backend.dto.CreateUserRequest;
 import com.saasdemo.backend.dto.UserResponse;
 import com.saasdemo.backend.entity.Commune;
 import com.saasdemo.backend.entity.Utilisateur;
+import com.saasdemo.backend.enums.GenderSLC;
 import com.saasdemo.backend.enums.Role;
 import com.saasdemo.backend.repository.CommuneRepository;
+import com.saasdemo.backend.repository.JwtRepository;
 import com.saasdemo.backend.repository.UtilisateurRepository;
+;
 
 @Service
 public class UserService {
+
   private final UtilisateurRepository utilisateurRepository ;
     private final PasswordEncoder passwordEncoder;
     private final ValidationService validationService;
+    private JwtRepository jwtRepository;
 
-    public UserService(UtilisateurRepository utilisateurRepository, CommuneRepository communeRepository, PasswordEncoder passwordEncoder, NotificationService notificationService, ValidationService validationService) {
+    public UserService(JwtRepository jwtRepository, UtilisateurRepository utilisateurRepository, CommuneRepository communeRepository, PasswordEncoder passwordEncoder, NotificationService notificationService, ValidationService validationService) {
         this.utilisateurRepository = utilisateurRepository;
         this.passwordEncoder = passwordEncoder;
         this.validationService = validationService;
-       
+        this.jwtRepository=jwtRepository;
+      
     }
 
 
@@ -34,6 +39,7 @@ public class UserService {
         Commune commune = admin.getCommune();
 
         this.utilisateurRepository.findByEmail(request.getEmail()); 
+    
 
         // Créer un nouvel utilisateur dans la même organisation
         Utilisateur newUser = Utilisateur.builder()
@@ -45,7 +51,7 @@ public class UserService {
                 .commune(commune)
                 .build();
        
-        this.validationService.createCode(newUser);
+        this.validationService.createCode(newUser,GenderSLC.USER_CREATION);
         return this.utilisateurRepository.save(newUser);
     }
 

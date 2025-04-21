@@ -3,6 +3,7 @@ package com.saasdemo.backend.util;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -97,32 +98,42 @@ public Jwt tokenByValue(String token) {
   return (Jwt) jwtRepository.findByValeur(token).orElseThrow(() -> new RuntimeException("Token invalid"));
 }
 
-//logout
+//end se deconnecter
 public ResponseEntity<?> deconex() {
-  Utilisateur sub=  (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-  
-  Jwt jwt = this.jwtRepository.findBytoken(
-          sub.getEmail(), false, false).orElseThrow(() -> new RuntimeException(" invalid Token"));
-  log.info("deconex: " + jwt.getValeur());
-  this.disableToken(sub);
-  jwtRepository.deleteAllByValeur(jwt.getValeur());
-  return ResponseEntity.ok().body(sub.getRole() + sub.getUsername()+ " EST DESACTIVE");
-}
+  Utilisateur utix = new Utilisateur();
+  ResponseEntity avad = null;
+  Optional<Jwt> jx = Optional.ofNullable(new Jwt());
+  try{    
+
+      Utilisateur sub=  (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      utix=sub;
+      jx =jwtRepository.findByUtilisateur(sub);}
+  catch(Exception e){ e.getLocalizedMessage();}
+  System.out.println("  DESACT "+jx.get().getDesactive() +" " + " EXPIRA "+jx.get().getExpiration());
+ if(jx.get().getDesactive()!=true && jx.get().getExpiration()!=true){
+    disableToken(utix);
+    avad= ResponseEntity.ok().body(utix.getUsername() +" EST DECONNECTE");}
+  else {avad=ResponseEntity.badRequest().body(utix.getUsername()+" EST DEJA DECONNECTE");}
+    return  avad;
+ }
+ 
+   
+
 
 
 
 
 //suppresion journalière des tokens dans la base données
- @Scheduled(cron = "@daily")
+ @Scheduled(cron = "@hourly")
     public void removeUselessToken(){
         log.info("supression Token invalid{}", Instant.now());
-        this.jwtRepository.deleteAllByExpirationAndDesactive(true,true);
+        this.jwtRepository.deleteByExpirationAndDesactive(true,true);
     }
 
 
     // fonction pour desactiver le token actif 
         public void  disableToken(Utilisateur subscriber){
-        final List<Jwt> jwtList = this.jwtRepository.findByAbonne(subscriber.getEmail()).
+        final List<Jwt> jwtList = this.jwtRepository.findByUtilisateur(subscriber.getEmail()).
                 peek(
                         jwt -> {
                             jwt.setDesactive(true);
@@ -135,3 +146,5 @@ public ResponseEntity<?> deconex() {
     
 }
 }
+
+

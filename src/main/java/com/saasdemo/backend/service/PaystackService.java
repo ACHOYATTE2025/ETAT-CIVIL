@@ -39,6 +39,8 @@ public class PaystackService  {
     @Value("${paystack.callback.url}")
     private String callbackUrl;
 
+
+    //initier un paiement avec paystack
     public String initializeTransaction(String email, int amountKobo) throws Exception {
         String url = "https://api.paystack.co/transaction/initialize";
 

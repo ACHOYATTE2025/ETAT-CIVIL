@@ -9,7 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.saasdemo.backend.dto.ActiveAdmin;
+import com.saasdemo.backend.dto.ActiveCode;
 import com.saasdemo.backend.dto.LoginAdmin;
 import com.saasdemo.backend.dto.NewPassword;
 import com.saasdemo.backend.dto.ReactivedCompte;
@@ -18,8 +18,10 @@ import com.saasdemo.backend.dto.SignupResponse;
 import com.saasdemo.backend.entity.Commune;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.entity.Validation;
+import com.saasdemo.backend.enums.GenderSLC;
 import com.saasdemo.backend.enums.Role;
 import com.saasdemo.backend.repository.CommuneRepository;
+import com.saasdemo.backend.repository.JwtRepository;
 import com.saasdemo.backend.repository.UtilisateurRepository;
 import com.saasdemo.backend.security.TenantContext;
 import com.saasdemo.backend.util.JwtUtil;
@@ -31,6 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class AuthService {
+
+
   
   private final CommuneRepository communeRepository;
   private final PasswordEncoder passwordEncoder;
@@ -40,7 +44,9 @@ public class AuthService {
   private final UtilisateurService utilisateurService;
   private  ResponseEntity reponses;
   private Utilisateur ux = null;
-   private final AuthenticationManager authenticationManager;
+  private final AuthenticationManager authenticationManager;
+  private JwtRepository jwtRepository ;
+ 
 
   //Instancier 
   public AuthService(CommuneRepository communeRepository,PasswordEncoder passwordEncoder,JwtUtil jwtUtil,
@@ -52,6 +58,8 @@ public class AuthService {
     this.utilisateurRepository = utilisateurRepository;
     this.utilisateurService = utilisateurService;
     this.authenticationManager = authenticationManager;
+    this.jwtRepository = jwtRepository;
+   
   }
     
   
@@ -79,14 +87,16 @@ public SignupResponse Register( SignupRequest request){
                                   .build();
 
 
-        System.out.println(utilisateur);                           
+        System.out.println(utilisateur);
         //sauvegarder les informations
       this.communeRepository.save(utilisateur);
         //envoyer le code pour activer le compte admin
-        this.validationService.createCode(utilisateur);
+        this.validationService.createCode(utilisateur, GenderSLC.SIGNUP);
 
         //creer le token après authentification
         String token = jwtUtil.generateToken(utilisateur);
+
+       
 
         //renvoyer un Token null pour une commune déja inscrite
         return new SignupResponse(token);
@@ -98,7 +108,7 @@ public SignupResponse Register( SignupRequest request){
 
    //Activation de compte Admin + Commune enregistré
 
-   public ResponseEntity<?> activationAdmin(ActiveAdmin activationCompteAdmin) {
+   public ResponseEntity<?> activationAdmin(ActiveCode activationCompteAdmin) {
     try{Validation codex = this.validationService.getValidation(activationCompteAdmin.getCode());
 
     if (Instant.now().isAfter(codex.getExpirationCode())) {
@@ -108,6 +118,7 @@ public SignupResponse Register( SignupRequest request){
             orElseThrow(() -> new RuntimeException("L'Administrateur n'exite pas "));
     subscriberActivatedorNot.setActive(true);
     this.utilisateurRepository.save(subscriberActivatedorNot);
+    this.jwtUtil.disableToken(subscriberActivatedorNot);
   
      this.reponses = ResponseEntity.ok().body("LE COMPTE DE "+subscriberActivatedorNot.getRole()+" "+ subscriberActivatedorNot.getUsername()+
     " EST ACTIVEE");} 
@@ -118,24 +129,48 @@ public SignupResponse Register( SignupRequest request){
   }
 
 
-  // login Admin + Commune
-  public SignupResponse loginAdminService(LoginAdmin loginAdmin) {
-    String tokenX=null;
+  // login + Commune
+  public String loginService(LoginAdmin loginAdmin) {
+  
+    String retour=null;
     try{
       this.ux =  (Utilisateur) this.utilisateurService.loadUserByUsername(loginAdmin.getEmail());
       authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                        loginAdmin.getEmail(), loginAdmin.getPassword()));
                        System.out.println("Nom Admin :"+this.ux.getUsername());
-                       TenantContext.setCurrentTenantId(this.ux.getId());
-                       String token = this.jwtUtil.generateToken(ux);
-                       tokenX = token;}
-    catch(Exception e){tokenX="ADMIN NON AUTHENTIFIE=>"+e.getLocalizedMessage();}
+                       TenantContext.setCurrentTenantId(ux.getCommune().getId());
+                       System.out.println("TEANT ID :"+TenantContext.getCurrentTenantId());
+                      this.validationService.createCode(ux,GenderSLC.LOGIN);
+                      return retour=" CODE VALIDATION ENVOYE";
+                      }
+    catch(Exception e){retour="ADMIN NON AUTHENTIFIE=>"+e.getLocalizedMessage();}
           
-    return new SignupResponse(tokenX);    
+    return retour;    
     }
+
              
- 
+ // activation login ( generation de token JWT)
+  public SignupResponse activationLogin(ActiveCode activeCode){
+    String tokenX=null;
+    try{Validation codex = this.validationService.getValidation(activeCode.getCode());
+
+      if (Instant.now().isAfter(codex.getExpirationCode())) {
+        throw new RuntimeException("Le Code d'Activation a expirée");}
   
+      Utilisateur subscriberActivatedorNot = this.utilisateurRepository.findByEmail(codex.getUtilisateur().getEmail()).
+              orElseThrow(() -> new RuntimeException(codex.getUtilisateur().getRole()+" n'exite pas "));
+      
+      String  token =this.jwtUtil.generateToken(subscriberActivatedorNot);tokenX=token; 
+     
+    }
+    
+      catch(Exception e){tokenX="LE COMPTE N'A PU ÊTRE ACTIVE =>"+e.getLocalizedMessage();}
+    
+      
+      return new SignupResponse(tokenX);
+     
+  
+}
 
 
   // renvoi de code d'activation de compte admin de commune
@@ -146,7 +181,7 @@ public SignupResponse Register( SignupRequest request){
           Utilisateur subscriber =   (Utilisateur) this.utilisateurService.loadUserByUsername(reactived.getEmail());
         alpha=subscriber;
         if(alpha.getActive()){repo = new RuntimeException("LE COMPTE DE L'ADMIN "+  alpha.getUsername()+" EST DEJA ACTIVEE");}
-        this.validationService.createCode(alpha);}
+        this.validationService.createCode(alpha, null);}
       catch(Exception e){ repo = new RuntimeException("ERREUR ADMIN INCONNU");}
     return ResponseEntity.ok().body(repo.getLocalizedMessage());
      
@@ -159,7 +194,7 @@ public SignupResponse Register( SignupRequest request){
 public void resetpassword(ReactivedCompte UpdateMotDePasse) {
   Utilisateur subscriber = (Utilisateur) this.utilisateurService.loadUserByUsername(UpdateMotDePasse.getEmail());
   log.info(subscriber.getUsername());
-  this.validationService.createCode(subscriber);
+  this.validationService.createCode(subscriber, null);
 }
 
 /**************************************************************************************************/

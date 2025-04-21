@@ -29,7 +29,7 @@ public class NotificationService {
                 validation.getCode()+ " valable  10 mins");
         this.javaMailSender.send(message);*/
         System.out.println("");
-        System.out.println("Code Validation: " + validation.getCode());
+        System.out.println("CODE D' ACTIVATION: " + validation.getCode());
 
     }
 }
