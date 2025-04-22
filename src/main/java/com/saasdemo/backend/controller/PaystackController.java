@@ -7,17 +7,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.saasdemo.backend.service.PaystackService;
 
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import lombok.RequiredArgsConstructor;
+
 
 @RestController
 @RequiredArgsConstructor
-public class PaymentController {
+public class PaystackController {
 
    private final PaystackService paystackService;
 
@@ -25,7 +28,7 @@ public class PaymentController {
      * Endpoint permettant à un utilisateur (typiquement un ADMIN) d'initialiser une transaction Paystack.
      * Le montant est passé dans la requête (en Kobo, par exemple 10000 correspond à 100.00 NGN – adapte selon ta devise).
      */
-    @PostMapping("/start-paystack")
+    @PostMapping("/startPaystack")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> startPaystackTransaction(@RequestParam String email,
                                                                         @RequestParam int amountKobo) {
@@ -52,7 +55,7 @@ public class PaymentController {
 
 
 // verification du callBack après paiement
-@GetMapping("/paystack-callback") 
+@GetMapping("/paystackCallback") 
 public ResponseEntity<String> paystackCallback( @RequestParam("reference") String reference ){
     try { JsonNode verification = paystackService.verifyTransaction(reference); 
         String status = verification.path("data").path("status").asText();
@@ -68,8 +71,35 @@ public ResponseEntity<String> paystackCallback( @RequestParam("reference") Strin
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                          .body("Erreur lors de la vérification : " + e.getMessage());
     }
-    
-    
+        
+    }
+
+
+
+   //mise en place des webhooks
+   @PostMapping(path="/paystackWebhooks")
+    public ResponseEntity<String> handlePaystackWebhook(@RequestBody Map<String, Object> payload,
+                                                        @RequestHeader("x-paystack-signature") String signature) {
+        boolean isValid = paystackService.verifyWebhookSignature(payload, signature);
+        if (!isValid) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid signature");
+        }
+
+        String event = (String) payload.get("event");
+
+        if ("charge.success".equals(event)) {
+            Map<String, Object> data = (Map<String, Object>) payload.get("data");
+            String reference = (String) data.get("reference");
+            Map<String, Object> metadata = (Map<String, Object>) data.get("metadata");
+            String tenantId = (String) metadata.get("tenant_id");
+
+           this.paystackService.handleSuccessfulPayment(reference, tenantId);
+        }
+
+        return ResponseEntity.ok("Webhook received");
+    }
+
+
     }
     
-}
+    

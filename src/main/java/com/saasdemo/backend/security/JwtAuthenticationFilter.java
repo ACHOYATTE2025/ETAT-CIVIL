@@ -1,10 +1,10 @@
 package com.saasdemo.backend.security;
 
 import java.io.IOException;
-import java.util.Collections;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -29,6 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter  {
   private final UtilisateurService utilisateurService;
 
 
+
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
         throws ServletException, IOException {
@@ -43,9 +44,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter  {
                     String email = claims.getSubject();
                     Long organizationId = claims.get("organizationId", Long.class);
     
-                    userRepository.findByEmail(email).ifPresent(user -> {
+                    UserDetails userDetails = this.utilisateurService.loadUserByUsername(email);
+                        userRepository.findByEmail(email).ifPresent(user -> {
                         UsernamePasswordAuthenticationToken auth =
-                                new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
+                                new UsernamePasswordAuthenticationToken(user, null, userDetails.getAuthorities()  );
                         SecurityContextHolder.getContext().setAuthentication(auth);
     
                         TenantContext.setCurrentTenantId(organizationId); // multi-tenant context

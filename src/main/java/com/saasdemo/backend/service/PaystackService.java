@@ -1,9 +1,13 @@
 package com.saasdemo.backend.service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -31,6 +35,7 @@ public class PaystackService  {
  private final ObjectMapper objectMapper = new ObjectMapper();
  private final RestTemplate restTemplate = new RestTemplate();
  private final UtilisateurRepository utilisateurRepository;
+ private final TenantService tenantService;
 
 
     @Value("${paystack.secret.key}")
@@ -101,7 +106,41 @@ public class PaystackService  {
 
   }
 
+// Verification de la signature du webhook
+public boolean verifyWebhookSignature(Map<String, Object> payload, String signature) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json = objectMapper.writeValueAsString(payload);
+
+            SecretKeySpec keySpec = new SecretKeySpec(paystackSecretKey.getBytes(), "HmacSHA512");
+            Mac mac = Mac.getInstance("HmacSHA512");
+            mac.init(keySpec);
+            byte[] hash = mac.doFinal(json.getBytes(StandardCharsets.UTF_8));
+
+            String expectedSignature = bytesToHex(hash);
+            return expectedSignature.equals(signature);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+
+    private String bytesToHex(byte[] hash) {
+        StringBuilder hexString = new StringBuilder(2 * hash.length);
+        for (byte b : hash) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1)
+                hexString.append('0');
+            hexString.append(hex);
+        }
+        return hexString.toString();
+    }
+
+    public void handleSuccessfulPayment(String reference, String tenantId) {
+        // ici tu peux activer l'abonnement dans la base
+        this.tenantService.activateSubscription(tenantId);
+    }
+}
 
 
   
-}
