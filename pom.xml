@@ -141,7 +141,13 @@
     <artifactId>spring-boot-starter-webflux</artifactId>
     <version>3.4.4</version>
 </dependency>
-    
+
+<!--Apache Commons Codec-->
+<dependency>
+    <groupId>commons-codec</groupId>
+    <artifactId>commons-codec</artifactId>
+    <version>1.15</version> <!-- ou plus récent -->
+</dependency>
       
     
      

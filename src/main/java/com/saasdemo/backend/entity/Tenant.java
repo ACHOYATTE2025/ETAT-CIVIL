@@ -1,6 +1,6 @@
 package com.saasdemo.backend.entity;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -26,7 +26,7 @@ public class Tenant {
 
     private String abonnementStatut;
 
-    private LocalDate abonnementExpireLe;
+    private LocalDateTime abonnementExpireLe;
     
     private Boolean active=false;
 

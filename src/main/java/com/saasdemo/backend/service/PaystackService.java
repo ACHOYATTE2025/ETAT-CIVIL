@@ -2,6 +2,7 @@ package com.saasdemo.backend.service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import java.util.Optional;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -16,13 +18,18 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saasdemo.backend.entity.PaymentLog;
+import com.saasdemo.backend.entity.Subscription;
+import com.saasdemo.backend.entity.Tenant;
 import com.saasdemo.backend.entity.Utilisateur;
+import com.saasdemo.backend.repository.SubscriptionRepository;
+import com.saasdemo.backend.repository.TenantRepository;
 import com.saasdemo.backend.repository.UtilisateurRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -36,6 +43,8 @@ public class PaystackService  {
  private final RestTemplate restTemplate = new RestTemplate();
  private final UtilisateurRepository utilisateurRepository;
  private final TenantService tenantService;
+ private SubscriptionRepository subscriptionRepository;
+ private TenantRepository tenantRepository;
 
 
     @Value("${paystack.secret.key}")
@@ -43,6 +52,7 @@ public class PaystackService  {
 
     @Value("${paystack.callback.url}")
     private String callbackUrl;
+   
 
 
     //initier un paiement avec paystack
@@ -62,7 +72,6 @@ public class PaystackService  {
         Optional<Utilisateur> userX= this.utilisateurRepository.findByEmail(email);
         if(userX.isEmpty()){throw new RuntimeException("ADMIN NOT FOUND");}else{
             PaymentLog payeX = PaymentLog.builder()
-            .id(userX.get().getId())
             .email(userX.get().getEmail())
             .amount(amountKobo)
             .commune(userX.get().getCommune())
@@ -74,12 +83,12 @@ public class PaystackService  {
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
-            JsonNode json = objectMapper.readTree(response.getBody());
-            return json.path("data").path("authorization_url").asText();
-        } else {
+          Map<String,Object> data = (Map<String, Object>) response.getBody().get("data");
+          return (String) data.get("authorization_url");
+        } else{
             throw new RuntimeException("Erreur Paystack : " + response.getBody());
         }
     }
@@ -106,40 +115,107 @@ public class PaystackService  {
 
   }
 
-// Verification de la signature du webhook
-public boolean verifyWebhookSignature(Map<String, Object> payload, String signature) {
+
+    // Calcul du cryptage pour la verification de la signature du webhook
+    public String computeHmacSHA512(String data, String secret) {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String json = objectMapper.writeValueAsString(payload);
-
-            SecretKeySpec keySpec = new SecretKeySpec(paystackSecretKey.getBytes(), "HmacSHA512");
-            Mac mac = Mac.getInstance("HmacSHA512");
-            mac.init(keySpec);
-            byte[] hash = mac.doFinal(json.getBytes(StandardCharsets.UTF_8));
-
-            String expectedSignature = bytesToHex(hash);
-            return expectedSignature.equals(signature);
+            Mac sha512_HMAC = Mac.getInstance("HmacSHA512");
+            SecretKeySpec keySpec = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
+            sha512_HMAC.init(keySpec);
+            byte[] hashBytes = sha512_HMAC.doFinal(data.getBytes(StandardCharsets.UTF_8));
+            return Hex.encodeHexString(hashBytes); // Apache Commons Codec
         } catch (Exception e) {
-            return false;
+            throw new RuntimeException("Erreur lors du calcul HMAC SHA512", e);
         }
     }
 
+//traitement de chargesuccess
+    public void handleChargeSuccess(Map<String, Object> data) {
+        Map<String, Object> metadata = (Map<String, Object>) data.get("metadata");
+      String tenantId = (String) metadata.get("tenant_id");
 
-    private String bytesToHex(byte[] hash) {
-        StringBuilder hexString = new StringBuilder(2 * hash.length);
-        for (byte b : hash) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1)
-                hexString.append('0');
-            hexString.append(hex);
-        }
-        return hexString.toString();
+        String reference = (String) data.get("reference");
+        Integer amount = (Integer) data.get("amount");
+       String plan = (String) data.get("plan");
+      
+
+        Map<String, Object> customer = (Map<String, Object>) data.get("customer");
+        String email = (String) customer.get("email");
+
+        System.out.println("✅ charge.success pour " + email + " | Référence : " + reference + " | Montant : " + amount);
+        // Enregistre la transaction ou l'abonnement selon le besoin
+        Utilisateur us = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Subscription subscription = Subscription.builder()
+                                    .id(tenantId)
+                                    .status("ACTIVE")
+                                    .commune(us.getCommune())
+                                    .Reference(reference)
+                                    .planCode(plan)
+                                    .amount(amount)
+                                    .endDate(LocalDateTime.now().plusYears(1))
+                                    .createdAt(LocalDateTime.now())
+                                    .build();
+        this.subscriptionRepository.save(subscription);
+      
+        //Activer l'abonnement du TenantId
+        Tenant tenant = tenantRepository.findById(tenantId)
+          .orElseThrow(() -> new RuntimeException("Tenant non trouvé : " + tenantId));
+      tenant.setId(tenantId);
+      tenant.setName(tenant.getName());
+      tenant.setActive(true);
+      tenant.setAbonnementStatut("ACTIVE");
+      tenant.setAbonnementExpireLe(LocalDateTime.now().plusMonths(12)); // abonnement de 12 mois
+      tenantRepository.save(tenant);
+                    
     }
 
-    public void handleSuccessfulPayment(String reference, String tenantId) {
-        // ici tu peux activer l'abonnement dans la base
-        this.tenantService.activateSubscription(tenantId);
+
+    //traitement de invoice payment
+    public void handleInvoicePaymentSucceeded(Map<String, Object> data) {
+        Map<String, Object> subscription = (Map<String, Object>) data.get("subscription");
+        Map<String, Object> plan = (Map<String, Object>) subscription.get("plan");
+
+        String planCode = (String) plan.get("plan_code");
+        String email = (String) ((Map<String, Object>) subscription.get("customer")).get("email");
+        String reference = (String) data.get("reference");
+        Integer amount = (Integer) data.get("amount");
+        
+        Map<String, Object> metadata = (Map<String, Object>) data.get("metadata");
+        String tenantId = (String) metadata.get("tenant_id");
+        
+
+        System.out.println("✅ invoice.payment_succeeded | Email : " + email + " | Plan : " + planCode);
+        // Mettre à jour l’abonnement récurrent mensuel 
+
+        Utilisateur us = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Subscription subscriptionx = Subscription.builder()
+                                    .id(tenantId)
+                                    .status("ACTIVE")
+                                    .commune(us.getCommune())
+                                    .Reference(reference)
+                                    .planCode(planCode)
+                                    .amount(amount)
+                                    .endDate(LocalDateTime.now().plusYears(1))
+                                    .createdAt(LocalDateTime.now())
+                                    .build();
+        this.subscriptionRepository.save(subscriptionx);
+      
+
+           //Activer l'abonnement du TenantId
+           Tenant tenant = tenantRepository.findById(tenantId)
+           .orElseThrow(() -> new RuntimeException("Tenant non trouvé : " + tenantId));
+       tenant.setId(tenantId);
+       tenant.setName(tenant.getName());
+       tenant.setActive(true);
+       tenant.setAbonnementStatut("ACTIVE");
+       tenant.setAbonnementExpireLe(LocalDateTime.now().plusMonths(1)); // abonnement de 01 mois
+       tenantRepository.save(tenant);
+                     
+
     }
+
+
+   
 }
 
 

@@ -9,7 +9,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -22,16 +27,23 @@ import lombok.*;
 public class Subscription {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    private String plan;
+    
     private String status; // active, expired, pending
-    private LocalDateTime startDate;
+    private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime endDate;
-    private String paystackReference;
+    private String Reference;
+    private String planCode; 
+    private String name;
+    private String interval;
+    private int amount; // en kobo (ex: 500000 = 5000 FCFA)
 
    @OneToOne
     @JoinColumn(name = "commune_id")
     private Commune commune;
+
+   
+
 
 }
