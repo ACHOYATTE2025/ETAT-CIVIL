@@ -96,7 +96,10 @@ Interface web utilisateur (Frontend Angular ou React)
 
 Support multi-devises pour les paiements
 
-Historique et suivi des modifications d’acte
+Tableau de Bord interactif 
+
+Historique et suivi des moidificcations d'acte
+
 ---
 
 ### 👨‍💻 Auteur
@@ -107,7 +110,7 @@ Historique et suivi des modifications d’acte
 ### 📄 Licence
 Ce projet est sous licence MIT.
 
-🎯 Contributions
+### 🎯 Contributions
 Les contributions sont les bienvenues !
 Merci de soumettre une issue ou une pull request pour toute amélioration ou correction.
 
