@@ -103,7 +103,7 @@ Historique et suivi des moidifications d'acte
 ---
 
 ### 👨‍💻 Auteur
-**ACHO YATTE DEIVY CONSTANT|acho.quebec@gmail.com  | www.linkedin.com/in/yatté-deivy-constant-acho-04364a185**
+**ACHO YATTE DEIVY CONSTANT   | acho.quebec@gmail.com  | www.linkedin.com/in/yatté-deivy-constant-acho-04364a185**
 
 
 
