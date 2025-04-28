@@ -33,7 +33,7 @@ Ce projet propose un système complet pour :
 ## 🛠️ Technologies utilisées
 
 - **Spring Boot** (backend)
-- **Spring Security** (authentification/autorisation)
+- **Spring Security** (authentification double facteur /autorisation) | Token - Jwt 
 - **Spring Data JPA** (accès aux données)
 - **PostgreSQL** (base de données relationnelle)
 - **Paystack API** (paiement en ligne)
@@ -100,7 +100,7 @@ Historique et suivi des modifications d’acte
 ---
 
 ### 👨‍💻 Auteur
-** ACHO YATTE DEIVY CONSTANT  | www.linkedin.com/in/yatté-deivy-constant-acho-04364a185 **
+**ACHO YATTE DEIVY CONSTANT  | www.linkedin.com/in/yatté-deivy-constant-acho-04364a185**
 
 
 
