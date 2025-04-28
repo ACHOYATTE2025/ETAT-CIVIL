@@ -98,7 +98,7 @@ Support multi-devises pour les paiements
 
 Tableau de Bord interactif 
 
-Historique et suivi des moidificcations d'acte
+Historique et suivi des moidifications d'acte
 
 ---
 
