@@ -46,6 +46,7 @@ public class AuthService {
   private Utilisateur ux = null;
   private final AuthenticationManager authenticationManager;
   private JwtRepository jwtRepository ;
+  
  
 
   //Instancier 
@@ -59,6 +60,7 @@ public class AuthService {
     this.utilisateurService = utilisateurService;
     this.authenticationManager = authenticationManager;
     this.jwtRepository = jwtRepository;
+  
    
   }
     
@@ -73,8 +75,12 @@ public SignupResponse Register( SignupRequest request){
     
         if(commune==null){
           Commune communeX = this.communeRepository.save(
-          Commune.builder().nameCommune(request.getNamecommune()).build());
-        
+          Commune.builder().nameCommune("Mairie_"+request.getNamecommune()).build());
+          
+    //verification email      
+    if(!request.getEmail().contains("@") || !request.getEmail().contains(".")){
+      throw new RuntimeException("EMAIL NON VALID");
+    }
           
         //implementer les données l'utilisateur
         Utilisateur utilisateur  = Utilisateur.builder()
@@ -111,17 +117,19 @@ public SignupResponse Register( SignupRequest request){
    public ResponseEntity<?> activationAdmin(ActiveCode activationCompteAdmin) {
     try{Validation codex = this.validationService.getValidation(activationCompteAdmin.getCode());
 
-    if (Instant.now().isAfter(codex.getExpirationCode())) {
-      throw new RuntimeException("Le Code d'Activation a expirée");}
+        if (Instant.now().isAfter(codex.getExpirationCode())) {
+          throw new RuntimeException("Le Code d'Activation a expirée");}
 
-    Utilisateur subscriberActivatedorNot = this.utilisateurRepository.findByEmail(codex.getUtilisateur().getEmail()).
-            orElseThrow(() -> new RuntimeException("L'Administrateur n'exite pas "));
-    subscriberActivatedorNot.setActive(true);
-    this.utilisateurRepository.save(subscriberActivatedorNot);
-    this.jwtUtil.disableToken(subscriberActivatedorNot);
-  
-     this.reponses = ResponseEntity.ok().body("LE COMPTE DE "+subscriberActivatedorNot.getRole()+" "+ subscriberActivatedorNot.getUsername()+
-    " EST ACTIVEE");} 
+        Utilisateur subscriberActivatedorNot = this.utilisateurRepository.findByEmail(codex.getUtilisateur().getEmail()).
+                orElseThrow(() -> new RuntimeException("L'Administrateur n'exite pas "));
+        subscriberActivatedorNot.setActive(true);
+        this.utilisateurRepository.save(subscriberActivatedorNot);
+        
+      
+        this.reponses = ResponseEntity.ok().body("LE COMPTE DE "+subscriberActivatedorNot.getRole()+" "+ subscriberActivatedorNot.getUsername()+
+        " EST ACTIVEE");
+        this.jwtUtil.disableToken(subscriberActivatedorNot);
+  } 
     catch(Exception e){this.reponses= ResponseEntity.badRequest().body("LE COMPTE N'A PU ÊTRE ACTIVE =>"+e.getLocalizedMessage());}
     
     return this.reponses;
@@ -176,17 +184,23 @@ public SignupResponse Register( SignupRequest request){
   // renvoi de code d'activation de compte admin de commune
    public ResponseEntity<?> renvoiCode(ReactivedCompte reactived) {
     Utilisateur alpha=null;
-    RuntimeException repo = null;
-      try{
-          Utilisateur subscriber =   (Utilisateur) this.utilisateurService.loadUserByUsername(reactived.getEmail());
+    
+      
+        Utilisateur subscriber =   (Utilisateur) this.utilisateurService.loadUserByUsername(reactived.getEmail());
+        
         alpha=subscriber;
-        if(alpha.getActive()){repo = new RuntimeException("LE COMPTE DE L'ADMIN "+  alpha.getUsername()+" EST DEJA ACTIVEE");}
-        this.validationService.createCode(alpha, null);}
-      catch(Exception e){ repo = new RuntimeException("ERREUR ADMIN INCONNU");}
-    return ResponseEntity.ok().body(repo.getLocalizedMessage());
-     
-    }
-
+        if(alpha.getActive()){ new RuntimeException("LE COMPTE DE L'ADMIN "+  alpha.getUsername()+" EST DEJA ACTIVEE");
+        return ResponseEntity.badRequest().body("LE COMPTE DE L'ADMIN "+  alpha.getUsername()+" EST DEJA ACTIVEE");
+      }else if(!subscriber.getActive()){
+        this.validationService.createCode(subscriber, GenderSLC.SIGNUP);
+        return ResponseEntity.ok().body("CODE D'ACTIVATION ENVOYE");}
+      else{return ResponseEntity.badRequest().body("ADMIN INCONNU");}
+        
+      }
+        
+          
+    
+  
 
 /***************************************************************************************************/
 

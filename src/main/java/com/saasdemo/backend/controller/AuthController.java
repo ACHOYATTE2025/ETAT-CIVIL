@@ -42,7 +42,7 @@ public class AuthController {
 
   //enregistrer une commune et l'Admin
   @PostMapping("/signup")
-  public SignupResponse register(@Valid @RequestBody SignupRequest request) {
+  public SignupResponse register( @RequestBody @Valid SignupRequest request) {
        return this.authService.Register(request);
      
   }
