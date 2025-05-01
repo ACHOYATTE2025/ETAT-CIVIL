@@ -68,8 +68,8 @@ public class AuthService {
 
 //Enregistrer une Commune + son Admin
 @Transactional
-public SignupResponse Register( SignupRequest request){
-      
+public ResponseEntity<?> Register( SignupRequest request){
+    ResponseEntity XXX=null;
     //chercher la commune
     Commune commune =  communeRepository.findByNameCommune(request.getNamecommune());
     
@@ -98,16 +98,12 @@ public SignupResponse Register( SignupRequest request){
       this.communeRepository.save(utilisateur);
         //envoyer le code pour activer le compte admin
         this.validationService.createCode(utilisateur, GenderSLC.SIGNUP);
-
-        //creer le token après authentification
-        String token = jwtUtil.generateToken(utilisateur);
+        XXX= ResponseEntity.ok().body(" VOTRE CODE VALIDATION A ETE ENVOYE");
 
        
-
-        //renvoyer un Token null pour une commune déja inscrite
-        return new SignupResponse(token);
-        }else{   return new SignupResponse(" VOUS ÊTES DEJA INSCRIT");}
+        }else{ XXX= ResponseEntity.ok().body(" VOUS ÊTES DEJA INSCRIT");}
       
+        return XXX;
         
  
   }

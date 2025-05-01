@@ -29,10 +29,10 @@ public class ExtraitNaissance {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-//données extrait
- 
+
+
+
   private  String numeroExtrait;
-  private  Date dateRegistre;
   private  String lieuDelivrance;
   private  Date dateDelivrance;
 
@@ -74,8 +74,18 @@ public class ExtraitNaissance {
   Byte[] cni2;*/
 
 @ManyToOne
+@JoinColumn(name = "utilisateur_id")
+private Utilisateur utilisateur;
+
+@ManyToOne
 @JoinColumn(name = "commune_id")
   private Commune commune;
+
+//données extrait
+ 
+@ManyToOne
+@JoinColumn(name = "registre_id")
+private Registre registre;
 
 
 }

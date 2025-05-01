@@ -34,7 +34,7 @@ public class ExtraitNaissanceController {
 //Creer un Extrait de Naissance
 
 @PostMapping(path="/creerExtrait")
-private  ResponseEntity<?>  createExtraitNaissance(@RequestBody  @Valid ExtraitDto extrait ){
+private  ResponseEntity<?>  createExtraitNaissance(@Valid @RequestBody   ExtraitDto extrait ){
   return this.documentMairieService.creerExtait(extrait);
   }
     

@@ -7,7 +7,6 @@ import lombok.Data;
 @Data
 public class ExtraitDto {
   private  String numeroExtrait;
-  private  Date dateRegistre;
   private  String lieuDelivrance;
   private  Date dateDelivrance;
 

@@ -1,5 +1,6 @@
 package com.saasdemo.backend.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,8 +12,10 @@ import org.springframework.stereotype.Service;
 import com.saasdemo.backend.config.MagicID;
 import com.saasdemo.backend.dto.ExtraitDto;
 import com.saasdemo.backend.entity.ExtraitNaissance;
+import com.saasdemo.backend.entity.Registre;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.repository.ExtraitNaissanceRepository;
+import com.saasdemo.backend.repository.RegistreRepository;
 import com.saasdemo.backend.security.TenantContext;
 
 import jakarta.transaction.Transactional;
@@ -25,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExtraitNaissanceService {
   private final ExtraitNaissanceRepository extraitNaissanceRepository;
-  
+  private final RegistreRepository registreRepository;
   
  
 
@@ -45,19 +48,25 @@ public class ExtraitNaissanceService {
 
   public ResponseEntity<?> creerExtait(ExtraitDto extrait) {
      ResponseEntity XXX;
-    Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    
-
-   Optional<List<ExtraitNaissance>> Xtrait = this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(extrait.getNumeroExtrait(),usex.getCommune());
-   System.out.println("Xtrait SIZE :"+Xtrait.get().size());
+     Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+     TenantContext.setCurrentTenantId(usex.getCommune().getId());
+     Optional<List<ExtraitNaissance>> Xtrait = this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(extrait.getNumeroExtrait(),usex.getCommune());
+   
    if(Xtrait.get().size()==0)
-      {
-    
+      {  
+        // configurer le registre
+          Registre regis = Registre.builder()
+                          .registreAnnee(String.valueOf(LocalDate.now().getYear()))
+                          .build();
+          this.registreRepository.save(regis);
+
+
+          //enregistrer un extrait
           ExtraitNaissance extros = ExtraitNaissance.builder()
                                     .commune(usex.getCommune())
                                     .dateDelivrance(extrait.getDateDelivrance())
                                     .dateNaissance(extrait.getDateNaissance())
-                                    .dateRegistre(extrait.getDateRegistre())
+                                    .registre(regis)                                   
                                     .deces(extrait.getDeces())
                                     .dissolutionMariage(extrait.getDissolutionMariage())
                                     .domicileMere(extrait.getDomicileMere())
@@ -96,6 +105,10 @@ public class ExtraitNaissanceService {
     Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     ExtraitNaissance Xtrait = (ExtraitNaissance) this.extraitNaissanceRepository.findByIdAndCommune(idx,usex.getCommune());
     
+
+    Registre regis = Registre.builder()
+    .registreAnnee(String.valueOf(LocalDate.now().getYear()))
+    .build();
   
     if(Xtrait==null){TTT = ResponseEntity.badRequest().body("EXTRAIT INCONNU");}
     else{
@@ -105,7 +118,7 @@ public class ExtraitNaissanceService {
       Xtrait.setCommune(usex.getCommune());
       Xtrait.setDateDelivrance(extrait.getDateDelivrance());
       Xtrait.setDateNaissance(extrait.getDateNaissance());
-      Xtrait.setDateRegistre(extrait.getDateRegistre());
+      Xtrait.setRegistre(regis);
       Xtrait.setDeces(extrait.getDeces());
       Xtrait.setDissolutionMariage(extrait.getDissolutionMariage());
       Xtrait.setDomicileMere(extrait.getDomicileMere());

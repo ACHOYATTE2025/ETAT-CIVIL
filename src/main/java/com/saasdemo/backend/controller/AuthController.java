@@ -41,8 +41,8 @@ public class AuthController {
   }
 
   //enregistrer une commune et l'Admin
-  @PostMapping("/signup")
-  public SignupResponse register( @RequestBody @Valid SignupRequest request) {
+  @PostMapping("/register")
+  public ResponseEntity<?> register( @RequestBody @Valid SignupRequest request) {
        return this.authService.Register(request);
      
   }
