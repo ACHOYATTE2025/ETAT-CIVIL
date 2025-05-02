@@ -38,9 +38,6 @@ public class ExtraitNaissanceService {
 
 
     
-
-
-  
   
 
     
@@ -106,9 +103,7 @@ public class ExtraitNaissanceService {
     ExtraitNaissance Xtrait = (ExtraitNaissance) this.extraitNaissanceRepository.findByIdAndCommune(idx,usex.getCommune());
     
 
-    Registre regis = Registre.builder()
-    .registreAnnee(String.valueOf(LocalDate.now().getYear()))
-    .build();
+   
   
     if(Xtrait==null){TTT = ResponseEntity.badRequest().body("EXTRAIT INCONNU");}
     else{
@@ -118,7 +113,6 @@ public class ExtraitNaissanceService {
       Xtrait.setCommune(usex.getCommune());
       Xtrait.setDateDelivrance(extrait.getDateDelivrance());
       Xtrait.setDateNaissance(extrait.getDateNaissance());
-      Xtrait.setRegistre(regis);
       Xtrait.setDeces(extrait.getDeces());
       Xtrait.setDissolutionMariage(extrait.getDissolutionMariage());
       Xtrait.setDomicileMere(extrait.getDomicileMere());
@@ -154,6 +148,7 @@ public Optional<List<ExtraitNaissance>> lireExtrait(String num) {
   
   if(notEmpty)
       { ExtraitNaissance THOR = this.extraitNaissanceRepository.findByNumeroExtrait(num);
+        if(THOR==null){throw new RuntimeException("EXTRAIT DE NAISSANCE INEXISTANT");}
        MagicID.magic=THOR.getId();
        return this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(num,usex.getCommune());}
     return this.extraitNaissanceRepository.findAllByCommune(usex.getCommune());}

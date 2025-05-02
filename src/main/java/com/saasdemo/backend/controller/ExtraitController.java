@@ -25,17 +25,22 @@ import lombok.AllArgsConstructor;
 
 @RestController
 @AllArgsConstructor
-public class ExtraitNaissanceController {
-  private ExtraitNaissanceRepository extraitNaissanceRepository;
-  private final ExtraitNaissanceService documentMairieService;
+public class ExtraitController {
+  private final ExtraitNaissanceRepository extraitNaissanceRepository;
+  private final ExtraitNaissanceService extraitNaissanceService;
 
   
+
+
+  /*==============================================*/
+  /*       Volet extrait de naissance             */
+  /*==============================================*/
 
 //Creer un Extrait de Naissance
 
 @PostMapping(path="/creerExtrait")
 private  ResponseEntity<?>  createExtraitNaissance(@Valid @RequestBody   ExtraitDto extrait ){
-  return this.documentMairieService.creerExtait(extrait);
+  return this.extraitNaissanceService.creerExtait(extrait);
   }
     
 
@@ -44,19 +49,24 @@ private  ResponseEntity<?>  createExtraitNaissance(@Valid @RequestBody   Extrait
 //Modifier un Extrait de naissance
 @PutMapping(path="/modifierExtrait/{id}")
 private ResponseEntity<?> modifierExtraitNaissance(@RequestBody ExtraitDto extrait, @PathVariable Long id){
-  return this.documentMairieService.modifierExtrait(extrait,id);
+  return this.extraitNaissanceService.modifierExtrait(extrait,id);
 }
 
 //lire tous les extraits ou chercher un extrait
 @GetMapping(path="/lireUnOuTousExtraits")
  Optional<List<ExtraitNaissance>>  lireExtrait(@RequestParam(required = false)  String num){
-  return  this.documentMairieService.lireExtrait(num);
+  return  this.extraitNaissanceService.lireExtrait(num);
 }
 
 //suprimmer un extrait de naissance
 @DeleteMapping(path="/supprimerExtrait")
 @PreAuthorize("hasRole('ADMIN')")
 private String supprimerextrait(){
-   return this.documentMairieService.supprimerExtrait();
+   return this.extraitNaissanceService.supprimerExtrait();
 }
+
+
+
+
+
 }
