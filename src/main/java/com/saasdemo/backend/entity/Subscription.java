@@ -31,7 +31,7 @@ public class Subscription {
 
     
     private String status; // active, expired, pending
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt=LocalDateTime.now() ;
     private LocalDateTime endDate;
     private String Reference;
     private String planCode; 

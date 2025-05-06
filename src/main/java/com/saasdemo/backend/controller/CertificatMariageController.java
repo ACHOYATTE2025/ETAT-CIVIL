@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-public class CertificatController {
+public class CertificatMariageController {
   private final CertificatMariageService certificatMariageService;
   private final CertificatMariageRepository certificatMariageRepository;
 
@@ -32,7 +32,7 @@ public class CertificatController {
 
 
 
-   /*==============================================*/
+  /*==============================================*/
   /*       Volet Certificat de mariage            */
   /*==============================================*/
 

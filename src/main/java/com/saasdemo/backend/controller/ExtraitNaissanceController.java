@@ -25,7 +25,7 @@ import lombok.AllArgsConstructor;
 
 @RestController
 @AllArgsConstructor
-public class ExtraitController {
+public class ExtraitNaissanceController {
   private final ExtraitNaissanceRepository extraitNaissanceRepository;
   private final ExtraitNaissanceService extraitNaissanceService;
 

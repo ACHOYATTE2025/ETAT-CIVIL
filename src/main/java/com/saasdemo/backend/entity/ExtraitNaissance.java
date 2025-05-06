@@ -73,6 +73,7 @@ public class ExtraitNaissance {
   @Lob
   Byte[] cni2;*/
 
+//utilisateur
 @ManyToOne
 @JoinColumn(name = "utilisateur_id")
 private Utilisateur utilisateur;
@@ -82,8 +83,7 @@ private Utilisateur utilisateur;
   private Commune commune;
 
 //données extrait
- 
-@ManyToOne
+ @ManyToOne
 @JoinColumn(name = "registre_id")
 private Registre registre;
 

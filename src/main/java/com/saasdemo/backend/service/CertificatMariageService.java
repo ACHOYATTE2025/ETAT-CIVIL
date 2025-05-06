@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CertificatMariageService {
   private final CertificatMariageRepository certificatMariageRepository;
   private final RegistreRepository registreRepository;
-  ResponseEntity XXX;
+  private  ResponseEntity XXX;
 
 
 

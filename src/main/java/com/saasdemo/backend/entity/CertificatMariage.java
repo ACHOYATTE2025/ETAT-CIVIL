@@ -75,4 +75,11 @@ private RegimeMariage regimeMariage;
 @ManyToOne
 @JoinColumn(name = "commune_id")
   private Commune commune;
+
+//utilisateur
+@ManyToOne
+@JoinColumn(name = "utilisateur_id")
+private Utilisateur utilisateur;
+
+
 }
