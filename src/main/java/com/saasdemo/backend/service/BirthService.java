@@ -3,18 +3,22 @@ package com.saasdemo.backend.service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
+import com.saasdemo.backend.dto.BirthDtoResponse;
+import com.saasdemo.backend.mapper.BirthDtoMapper;
+import com.saasdemo.backend.repository.UtilisateurRepository;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.config.MagicID;
-import com.saasdemo.backend.dto.ExtraitDto;
-import com.saasdemo.backend.entity.ExtraitNaissance;
+import com.saasdemo.backend.dto.BirthDtoRequest;
+import com.saasdemo.backend.entity.Birth;
 import com.saasdemo.backend.entity.Registre;
 import com.saasdemo.backend.entity.Utilisateur;
-import com.saasdemo.backend.repository.ExtraitNaissanceRepository;
+import com.saasdemo.backend.repository.BirthRepository;
 import com.saasdemo.backend.repository.RegistreRepository;
 import com.saasdemo.backend.security.TenantContext;
 
@@ -26,9 +30,10 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ExtraitNaissanceService {
-  private final ExtraitNaissanceRepository extraitNaissanceRepository;
+public class BirthService {
+  private final BirthRepository extraitNaissanceRepository;
   private final RegistreRepository registreRepository;
+  private final BirthDtoMapper birthDtoMapper;
   
  
 
@@ -43,13 +48,16 @@ public class ExtraitNaissanceService {
     
   //CREER UN EXTRAIT DE NAISSANCE
 
-  public ResponseEntity<?> creerExtait(ExtraitDto extrait) {
+  public ResponseEntity<?> BirthCreate(BirthDtoRequest extrait) {
      ResponseEntity XXX;
      Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+     //configurer le tenant
      TenantContext.setCurrentTenantId(usex.getCommune().getId());
-     Optional<List<ExtraitNaissance>> Xtrait = this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(extrait.getNumeroExtrait(),usex.getCommune());
+     
+     List<Birth> Xtrait = this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(extrait.getNumeroExtrait(),usex.getCommune());
    
-   if(Xtrait.get().size()==0)
+   if(Xtrait.isEmpty())
       {  
         // configurer le registre
           Registre regis = Registre.builder()
@@ -59,7 +67,7 @@ public class ExtraitNaissanceService {
 
 
           //enregistrer un extrait
-          ExtraitNaissance extros = ExtraitNaissance.builder()
+          Birth extros = Birth.builder()
                                     .commune(usex.getCommune())
                                     .dateDelivrance(extrait.getDateDelivrance())
                                     .dateNaissance(extrait.getDateNaissance())
@@ -81,10 +89,11 @@ public class ExtraitNaissanceService {
                                     .numeroExtrait(extrait.getNumeroExtrait()) 
                                     .professionMere(extrait.getProfessionMere())   
                                     .professionPere(extrait.getProfessionPere()) 
+                                    .utilisateur(usex)
                                     .build();
             
           this.extraitNaissanceRepository.save(extros);
-            XXX =  ResponseEntity.ok().body("EXTRAIT DE NAISSANCE "+extrait.getNumeroExtrait()+" ENREGISTRE");}
+            XXX =  ResponseEntity.ok().body("EXTRAIT DE NAISSANCE "+extrait.getNumeroExtrait()+" EST CREE");}
     else{  XXX = ResponseEntity.badRequest().body("EXTRAIT DE NAISSANCE EST DEJA ENREGISTRE");
      }
      
@@ -97,10 +106,10 @@ public class ExtraitNaissanceService {
 
 
 //MODIFIER UN EXTRAIT
-  public ResponseEntity<?> modifierExtrait(ExtraitDto extrait, Long idx) {
+  public ResponseEntity<?> UpdateBirth(BirthDtoRequest extrait, Long idx) {
     ResponseEntity TTT =null;
     Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    ExtraitNaissance Xtrait = (ExtraitNaissance) this.extraitNaissanceRepository.findByIdAndCommune(idx,usex.getCommune());
+    Birth Xtrait = (Birth) this.extraitNaissanceRepository.findByIdAndCommune(idx,usex.getCommune());
     
 
    
@@ -141,29 +150,33 @@ public class ExtraitNaissanceService {
 
 
 // Lire un extrait ou les extraits
-public Optional<List<ExtraitNaissance>> lireExtrait(String num) {
+public Stream<BirthDtoResponse> ReadBirth(String num) {
   
   boolean notEmpty = Strings.isNotEmpty(num);
   Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   
   if(notEmpty)
-      { ExtraitNaissance THOR = this.extraitNaissanceRepository.findByNumeroExtrait(num);
+      { Birth THOR = this.extraitNaissanceRepository.findByNumeroExtrait(num);
         if(THOR==null){throw new RuntimeException("EXTRAIT DE NAISSANCE INEXISTANT");}
        MagicID.magic=THOR.getId();
-       return this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(num,usex.getCommune());}
-    return this.extraitNaissanceRepository.findAllByCommune(usex.getCommune());}
+       return this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(num,usex.getCommune())
+               .stream()
+               .map(birthDtoMapper);}
+    return this.extraitNaissanceRepository.findAllByCommune(usex.getCommune())
+            .stream()
+            .map(birthDtoMapper);}
 
 
 
 
 //suprimmer un extrait
 @Transactional
-public String supprimerExtrait() {
-  ExtraitNaissance DEXA;
+public String Birthdeletion() {
+  Birth DEXA;
   Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   TenantContext.setCurrentTenantId(usex.getId());
   try{
-    ExtraitNaissance Xtrait = this.extraitNaissanceRepository.findByIdAndCommune( MagicID.magic, usex.getCommune());
+    Birth Xtrait = this.extraitNaissanceRepository.findByIdAndCommune( MagicID.magic, usex.getCommune());
     DEXA=Xtrait;
   }
    catch(Exception e){throw new RuntimeException("SUPPRESION IMPOSSIBLE-EXTRAIT DE NAISSANCE INTROUVABLE");}

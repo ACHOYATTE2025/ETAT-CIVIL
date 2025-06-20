@@ -3,13 +3,13 @@ package com.saasdemo.backend.repository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import com.saasdemo.backend.entity.Commune;
+import com.saasdemo.backend.entity.area;
 import com.saasdemo.backend.entity.Utilisateur;
 
 @Repository
-public interface CommuneRepository extends CrudRepository<Commune, Long> {
+public interface CommuneRepository extends CrudRepository<area, Long> {
 
-  Commune findByNameCommune(String nameCommune);
+  area findByNameCommune(String nameCommune);
 
   void save(Utilisateur utilisateur);
 

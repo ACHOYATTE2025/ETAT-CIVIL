@@ -41,7 +41,7 @@ public class Subscription {
 
    @OneToOne
     @JoinColumn(name = "commune_id")
-    private Commune commune;
+    private area commune;
 
    
 

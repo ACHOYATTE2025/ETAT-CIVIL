@@ -2,8 +2,11 @@ package com.saasdemo.backend.service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
+import java.util.stream.Stream;
 
+import com.saasdemo.backend.dto.DeathdtoResponse;
+import com.saasdemo.backend.mapper.DeathDtoMapper;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -11,11 +14,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.config.MagicID;
-import com.saasdemo.backend.dto.CertificatDecesDto;
-import com.saasdemo.backend.entity.CertificatDeces;
+import com.saasdemo.backend.dto.DeathDtoRequest;
+import com.saasdemo.backend.entity.Death;
 import com.saasdemo.backend.entity.Registre;
 import com.saasdemo.backend.entity.Utilisateur;
-import com.saasdemo.backend.repository.CertificatDecesRepository;
+import com.saasdemo.backend.repository.DeathRepository;
 import com.saasdemo.backend.repository.RegistreRepository;
 import com.saasdemo.backend.security.TenantContext;
 
@@ -25,28 +28,31 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class CertificatDecesService {
-  private CertificatDecesRepository certificatDecesRepository;
-  private RegistreRepository registreRepository;
-  private ResponseEntity XXX;
+public class DeathService {
+  private final DeathRepository certificatDecesRepository;
+  private final RegistreRepository registreRepository;
+  private final DeathDtoMapper deathMapperDto;
 
 
 
   
   /*==============================================*/
-  /*       Volet Certificat de mariage            */
+  /*       Volet Certificat de Deces           */
   /*==============================================*/
   
    
   
   //creation certificat deces
-  public ResponseEntity<?> creerCertificatDeces(CertificatDecesDto certificat) {
+  public ResponseEntity<?> deathCreation(DeathDtoRequest certificat) {
+    ResponseEntity XXX;
     Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    
     //configurer le tenant
     TenantContext.setCurrentTenantId(usex.getCommune().getId());
-    Optional<List<CertificatDeces>> certi = this.certificatDecesRepository.findByNumeroCertificatAndCommune(certificat.getNumeroCertificat(),usex.getCommune());
 
-    if(certi.get().size()==0){
+    List<Death> certi = (List<Death>) this.certificatDecesRepository.findByNumeroCertificatAndCommune(certificat.getNumeroCertificat(),usex.getCommune());
+
+    if(certi.isEmpty()){
 
       // configurer le registre
           Registre regis = Registre.builder()
@@ -54,7 +60,7 @@ public class CertificatDecesService {
                           .build();
           this.registreRepository.save(regis);
     
-      CertificatDeces certificatdeces= CertificatDeces.builder()
+      Death certificatdeces= Death.builder()
                                        .commune(usex.getCommune())
                                        .numeroCertificat(certificat.getNumeroCertificat())
                                        .registre(regis)
@@ -66,11 +72,12 @@ public class CertificatDecesService {
                                        .lieuDeces(certificat.getLieuDeces())
                                        .NomPere(certificat.getNomPere())
                                        .nomMere(certificat.getNomMere())
+                                       .utilisateur(usex)
                                        .build();
       this.certificatDecesRepository.save(certificatdeces);
       XXX= ResponseEntity.ok().body("CERTIFICAT DE DECES CREE N° "+ certificat.getNumeroCertificat());}
     else{
-      XXX = ResponseEntity.badRequest().body("EXTRAIT DE DECES EST DEJA ENREGISTRE");
+      XXX = ResponseEntity.badRequest().body("CERTIFICAT DE DECES EST DEJA ENREGISTRE");
     }
     return XXX;
    
@@ -79,12 +86,12 @@ public class CertificatDecesService {
 
 
 //Modifier un certificat Deces
-  public ResponseEntity<?> modifierCertificatDeces(CertificatDecesDto certificat, Long id) {
+  public ResponseEntity<?> updateDeath(DeathDtoRequest certificat, Long id) {
         ResponseEntity TTT =null;
     Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
      //configurer le tenant
      TenantContext.setCurrentTenantId(usex.getCommune().getId());
-     CertificatDeces certi = this.certificatDecesRepository.findByIdAndCommune(id,usex.getCommune());
+     Death certi = this.certificatDecesRepository.findByIdAndCommune(id,usex.getCommune());
 
        
    if(certi==null){TTT = ResponseEntity.status(HttpStatusCode.valueOf(403)).body("CERTIFICAT DE DECES INCONNU");}
@@ -109,27 +116,34 @@ public class CertificatDecesService {
 
 
   //Lire certificat ou les certificats
-  public Optional<List<CertificatDeces>> lireCertificatDeces(String num) {
+  public Stream<DeathdtoResponse> readDeath(String num) {
       boolean notEmpty = Strings.isNotEmpty(num);
-  Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   
-  if(notEmpty )
-      { CertificatDeces THOR = this.certificatDecesRepository.findByNumeroCertificat(num);
-        if(THOR==null){throw new RuntimeException("CERTIFICAT DE DECES INEXISTANT");}
-       MagicID.magic=THOR.getId();
-       return this.certificatDecesRepository.findALLByNumeroCertificatAndCommune(num, usex.getCommune());}
-    return this.certificatDecesRepository.findAllByCommune(usex.getCommune());
+      if(notEmpty )
+          { Death THOR = this.certificatDecesRepository.findByNumeroCertificat(num);
+            if(THOR==null){throw new RuntimeException("CERTIFICAT DE DECES INEXISTANT");}
+           MagicID.magic=THOR.getId();
+           return this.certificatDecesRepository.findByNumeroCertificatAndCommune(num, usex.getCommune()).stream()
+                   .map(deathMapperDto); }
+
+
+      return this.certificatDecesRepository.findAllByCommune(usex.getCommune())
+              .stream()
+              .filter(Objects::nonNull) // filtrer les nulls AVANT le map
+              .map(deathMapperDto);
+
 
   }
 
 
 //supprimer certificat deces
-  public String supprimerCertificatDeces() {
-    CertificatDeces DEXA;
+  public String deathDeletion() {
+    Death DEXA;
   Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   TenantContext.setCurrentTenantId(usex.getId());
   try{
-    CertificatDeces Xtrait = this.certificatDecesRepository.findByIdAndCommune(MagicID.magic,usex.getCommune());
+    Death Xtrait = this.certificatDecesRepository.findByIdAndCommune(MagicID.magic,usex.getCommune());
     DEXA=Xtrait;
   }
    catch(Exception e){throw new RuntimeException("SUPPRESION IMPOSSIBLE-CERTIFICAT DE MARIAGE INTROUVABLE");}

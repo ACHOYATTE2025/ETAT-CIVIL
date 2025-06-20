@@ -3,9 +3,11 @@ package com.saasdemo.backend.dto;
 import java.sql.Date;
 
 import lombok.Data;
+import lombok.Getter;
 
 @Data
-public class CertificatDecesDto {
+
+public class DeathDtoRequest {
 
   private String numeroCertificat;
   private Date dateRegistre;
@@ -20,5 +22,5 @@ public class CertificatDecesDto {
   private Date dateDelivrance;
 
 
-    
+
 }

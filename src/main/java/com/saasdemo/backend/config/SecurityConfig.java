@@ -36,7 +36,7 @@ private final SubscriptionGuardFilter subscriptionGuardFilter;
      .authorizeHttpRequests(authorize->
      authorize
                               .requestMatchers(HttpMethod.POST,"/signup").permitAll()
-                                .requestMatchers("/v3/**", "/swagger-ui/**").permitAll()//permettre l'affichage de swagger
+                              .requestMatchers("/v3/**", "/swagger-ui/**").permitAll()//permettre l'affichage de swagger
                               .requestMatchers(HttpMethod.POST,"/register").permitAll()
                               .requestMatchers(HttpMethod.POST,"/accountActivation").permitAll()
                               .requestMatchers(HttpMethod.POST,"/accountReactivation").permitAll()

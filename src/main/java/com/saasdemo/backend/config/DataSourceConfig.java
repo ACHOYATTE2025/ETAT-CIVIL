@@ -1,18 +1,13 @@
 package com.saasdemo.backend.config;
 
 
-import javax.sql.DataSource;
-
-import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 
 //Initier l'initialisation à la base données
 @Configuration
 public class DataSourceConfig {
-    @Bean
+/*@Bean
     @Primary
     public DataSource dataSource() {
         return DataSourceBuilder.create()
@@ -23,5 +18,5 @@ public class DataSourceConfig {
                 
                
                 .build();
-    }
+    }*/
 }

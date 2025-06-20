@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.saasdemo.backend.dto.ActiveCode;
+import com.saasdemo.backend.dto.ActiveCodeRequest;
 import com.saasdemo.backend.dto.CreateUserRequest;
-import com.saasdemo.backend.dto.LoginAdmin;
-import com.saasdemo.backend.dto.NewPassword;
-import com.saasdemo.backend.dto.ReactivedCompte;
+import com.saasdemo.backend.dto.LoginAdminRequest;
+import com.saasdemo.backend.dto.NewPasswordRequest;
+import com.saasdemo.backend.dto.ReactivedCompteRequest;
 import com.saasdemo.backend.dto.SignupRequest;
 import com.saasdemo.backend.dto.SignupResponse;
 import com.saasdemo.backend.dto.UserResponse;
@@ -51,7 +51,7 @@ public class AuthController {
  
   @PreAuthorize("hasRole('ADMIN')")
   @PostMapping("/accountActivation")
-  public ResponseEntity<?> postMethodName(@RequestBody ActiveCode activationCompteAdmin) {
+  public ResponseEntity<?> postMethodName(@RequestBody ActiveCodeRequest activationCompteAdmin) {
       return this.authService.activationAdmin(activationCompteAdmin);
        }
 
@@ -59,7 +59,7 @@ public class AuthController {
 //Login 
 @PreAuthorize("hasAnyRole('ADMIN','USER')")
 @PostMapping("/login")
-public String loginAdmin(@Valid @RequestBody LoginAdmin loginAdmin){
+public String loginAdmin(@Valid @RequestBody LoginAdminRequest loginAdmin){
    return this.authService.loginService(loginAdmin);
 }
 
@@ -67,14 +67,14 @@ public String loginAdmin(@Valid @RequestBody LoginAdmin loginAdmin){
 //activation login
 @PreAuthorize("hasAnyRole('ADMIN','USER')")
   @PostMapping("/activationLogin")
-  public SignupResponse loginActivation(@RequestBody ActiveCode activationLogin) {
+  public SignupResponse loginActivation(@RequestBody ActiveCodeRequest activationLogin) {
       return this.authService.activationLogin(activationLogin);
        }
 
  //renvoi code d'activation
  //@PreAuthorize("hasAnyAuthority('ADMIN')" )
  @PostMapping(path = "/accountReactivation")
- public ResponseEntity<?> reactivationCompte(@RequestBody ReactivedCompte reactived) throws Exception {
+ public ResponseEntity<?> reactivationCompte(@RequestBody ReactivedCompteRequest reactived) throws Exception {
     return this.authService.renvoiCode(reactived);
  }
   
@@ -97,14 +97,14 @@ public UserResponse getMethodName() {
 //modifier mot de passe
     @ResponseStatus(value = HttpStatus.FOUND)
     @PostMapping(path = "/resetPassword")
-    public void ModifierMotDePasse(@RequestBody ReactivedCompte UpdateMotDePasse) throws Throwable {
+    public void ModifierMotDePasse(@RequestBody ReactivedCompteRequest UpdateMotDePasse) throws Throwable {
         this.authService.resetpassword(UpdateMotDePasse);
     }
 
  //nouveau mot de passe
     @ResponseStatus(value = HttpStatus.CREATED)
     @PostMapping(path = "/newPassword")
-    public void newpassword(@RequestBody NewPassword NouveauMotDePasse) throws Throwable {
+    public void newpassword(@RequestBody NewPasswordRequest NouveauMotDePasse) throws Throwable {
         this.authService.newpassword(NouveauMotDePasse);
     }
 
@@ -121,7 +121,7 @@ public ResponseEntity<?> deconex()  {
 //desactiver un souscripteur
 @PostMapping(path="/userDeactivation")
 @PreAuthorize("hasRole('ADMIN')")
-public ResponseEntity<?>   deletesouscripteur(@RequestBody ReactivedCompte emailSouscripteur) throws Exception {
+public ResponseEntity<?>   deletesouscripteur(@RequestBody ReactivedCompteRequest emailSouscripteur) throws Exception {
            return this.authService.deletesouscripteur( emailSouscripteur);}
 
     

@@ -23,8 +23,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-@Table(name = "certifcatdeces")
-public class CertificatDeces {
+@Table(name = "death")
+public class Death {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
 
@@ -53,7 +53,7 @@ public class CertificatDeces {
 //les communes 
 @ManyToOne
 @JoinColumn(name = "commune_id")
-  private Commune commune;
+  private area commune;
 
 //utilisateur
 @ManyToOne

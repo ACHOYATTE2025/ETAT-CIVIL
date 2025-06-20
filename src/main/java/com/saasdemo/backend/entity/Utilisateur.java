@@ -4,6 +4,7 @@ package com.saasdemo.backend.entity;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.hibernate.annotations.NaturalId;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -51,25 +52,21 @@ public class Utilisateur  implements UserDetails {
     @Valid
     private String email;
 
+
+    @NaturalId
     @Column(nullable = false)
     @Valid
     private String password;
 
-   @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     private Boolean active=false;
 
-    /*@Lob
-    private byte[] photo;// stocke 1photo  en BLOB
-
-    
-    private String photoName;// noms du fichier*/
-
-
+ 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "commune_id")
-    private Commune commune;// Référence à la commune
+    private area commune;// Référence à la commune
 
 
     @Override

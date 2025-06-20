@@ -6,6 +6,6 @@ import com.saasdemo.backend.entity.Tenant;
 
 public interface TenantRepository extends JpaRepository<Tenant,String>{
 
-  Object findById = null;
+  
     
 }

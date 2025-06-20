@@ -6,7 +6,7 @@ import java.util.Map;
 import lombok.Data;
 
 @Data
-public class PaystackWebhookDTO {
+public class PaystackWebhookRequest {
 
    private String event;
     private PaystackData data;

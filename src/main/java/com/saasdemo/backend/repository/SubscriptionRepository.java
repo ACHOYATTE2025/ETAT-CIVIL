@@ -9,6 +9,7 @@ import com.saasdemo.backend.entity.Subscription;
 
 public interface SubscriptionRepository extends CrudRepository<Subscription, String> {
 
+    //check if subscription is vzlid
     @Query("SELECT s FROM Subscription s WHERE s.commune.id = :orgId AND s.status = 'active' AND s.endDate > CURRENT_TIMESTAMP")
     Optional<Subscription> findSubscriptionByCommune(Long orgId);
   

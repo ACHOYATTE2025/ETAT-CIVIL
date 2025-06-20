@@ -3,7 +3,7 @@ package com.saasdemo.backend.controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.saasdemo.backend.dto.DashboardDto;
+import com.saasdemo.backend.dto.DashboardResponse;
 import com.saasdemo.backend.service.AuthService;
 import com.saasdemo.backend.service.DashboardService;
 import com.saasdemo.backend.service.UtilisateurService;
@@ -25,7 +25,7 @@ public class DashboardController {
                         /*    mise ne place du tableau de bord */
 /*================================================================================================= */
   @GetMapping(path="/dashboard")
-  public DashboardDto dashboard() {
+  public DashboardResponse dashboard() {
       return this.dashboardService.dash();
   }
   

@@ -4,16 +4,11 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class NewPassword {
+public class LoginAdminRequest {
   @NotBlank
   private String email;
 
   @NotBlank
-  private String code;
-
-  @NotBlank
   private String password;
-
-
     
 }

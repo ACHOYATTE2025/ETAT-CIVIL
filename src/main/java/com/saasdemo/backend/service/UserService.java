@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.dto.CreateUserRequest;
 import com.saasdemo.backend.dto.UserResponse;
-import com.saasdemo.backend.entity.Commune;
+import com.saasdemo.backend.entity.area;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.enums.GenderSLC;
 import com.saasdemo.backend.enums.Role;
@@ -36,7 +36,7 @@ public class UserService {
     public Utilisateur createUser(CreateUserRequest request) {
         // Récupère l'organisation de l'admin connecté
         Utilisateur admin = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Commune commune = admin.getCommune();
+        area commune = admin.getCommune();
 
         this.utilisateurRepository.findByEmail(request.getEmail()); 
     
@@ -59,6 +59,8 @@ public class UserService {
 // connaitre l'utilisateur connecté
     public UserResponse getCurrentUser() {
       Utilisateur user = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+      if(user==null){throw new RuntimeException("ANYONE CONNECTED");}
       return UserResponse.builder()
             .id(user.getId())
             .fullName(user.getUsername())
@@ -69,9 +71,4 @@ public class UserService {
     }
 
 
-
-    
-
-    
-    
 }

@@ -1,8 +1,8 @@
 package com.saasdemo.backend.controller;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.stream.Stream;
 
+import com.saasdemo.backend.dto.DeathdtoResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,17 +14,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.saasdemo.backend.dto.CertificatDecesDto;
-import com.saasdemo.backend.entity.CertificatDeces;
-import com.saasdemo.backend.service.CertificatDecesService;
+import com.saasdemo.backend.dto.DeathDtoRequest;
+import com.saasdemo.backend.repository.DeathRepository;
+import com.saasdemo.backend.service.DeathService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-public class CertificatDecesController {
-  private final CertificatDecesService certificatDecesService;
+public class DeathController {
+  private final DeathRepository certificatDecesRepository;
+  private final DeathService deathService;
 
 
 
@@ -36,35 +37,35 @@ public class CertificatDecesController {
 
 
  //creer un certificat de mariage
-  @PostMapping(path="/certificatDecesCreation")
-  public ResponseEntity<?> certifcatDecesCreation(@Valid @RequestBody  CertificatDecesDto certificat){
-    return this.certificatDecesService.creerCertificatDeces(certificat);
+  @PostMapping(path="/deathcertificatecreation")
+  public ResponseEntity<?> deathCertificateCreation(@Valid @RequestBody  DeathDtoRequest certificat){
+    return this.deathService.deathCreation(certificat);
   }    
 
 
 
 
 //Modifier un Certificat de Mariage
-@PutMapping(path="/modifierCertificatDeces/{id}")
-private ResponseEntity<?> modifierCertificat(@Valid @RequestBody CertificatDecesDto certificat, @PathVariable Long id){
-  return this.certificatDecesService.modifierCertificatDeces(certificat,id);
+@PutMapping(path="/updatedeathcertificate/{id}")
+private ResponseEntity<?> updateDeathCertificate(@Valid @RequestBody DeathDtoRequest certificat, @PathVariable Long id){
+  return this.deathService.updateDeath(certificat,id);
 }
 
 
 
 //lire tous les certificats ou chercher un certificat
-@GetMapping(path="/lireUnOuTousCertificatsDeces")
- Optional<List<CertificatDeces>>  lireCertificatDeces(@Valid @RequestParam(required = false)  String num){
-  return  this.certificatDecesService.lireCertificatDeces(num);
+@GetMapping(path="/readdeathcertificate")
+Stream<DeathdtoResponse> readDeathCertificates(@Valid @RequestParam(required = false)  String num){
+  return  this.deathService.readDeath(num);
 }
 
 
 
 //suprimmer un certifcat de deces
-@DeleteMapping(path="/deces")
+@DeleteMapping(path="/deathcertificatedeletion")
 @PreAuthorize("hasRole('ADMIN')")
-private String supprimerCertificat(){
-   return this.certificatDecesService.supprimerCertificatDeces();
+private String deathCertificateDeletion(){
+   return this.deathService.deathDeletion();
 }
     
 }

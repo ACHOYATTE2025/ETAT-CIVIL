@@ -9,7 +9,7 @@ import jakarta.persistence.Enumerated;
 import lombok.Data;
 
 @Data
-public class CertificatDto {
+public class WeddingDtoRequest {
   private String numeroCertificatMariage;
 
  
@@ -35,7 +35,7 @@ public class CertificatDto {
   private String nomMereEpouse;
 
 // regime mariage
-@Enumerated(value = EnumType.ORDINAL)
+@Enumerated(value = EnumType.STRING)
 private RegimeMariage regimeMariage;
     
 }

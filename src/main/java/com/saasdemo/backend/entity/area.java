@@ -12,12 +12,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "commune")
+@Table(name = "area")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Commune {
+public class area {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -9,13 +9,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.saasdemo.backend.dto.ActiveCode;
-import com.saasdemo.backend.dto.LoginAdmin;
-import com.saasdemo.backend.dto.NewPassword;
-import com.saasdemo.backend.dto.ReactivedCompte;
+import com.saasdemo.backend.dto.ActiveCodeRequest;
+import com.saasdemo.backend.dto.LoginAdminRequest;
+import com.saasdemo.backend.dto.NewPasswordRequest;
+import com.saasdemo.backend.dto.ReactivedCompteRequest;
 import com.saasdemo.backend.dto.SignupRequest;
 import com.saasdemo.backend.dto.SignupResponse;
-import com.saasdemo.backend.entity.Commune;
+import com.saasdemo.backend.entity.area;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.entity.Validation;
 import com.saasdemo.backend.enums.GenderSLC;
@@ -71,11 +71,11 @@ public class AuthService {
 public ResponseEntity<?> Register( SignupRequest request){
     ResponseEntity XXX=null;
     //chercher la commune
-    Commune commune =  communeRepository.findByNameCommune(request.getNamecommune());
+    area commune =  communeRepository.findByNameCommune(request.getNamecommune());
     
         if(commune==null){
-          Commune communeX = this.communeRepository.save(
-          Commune.builder().nameCommune("Mairie_"+request.getNamecommune()).build());
+          area communeX = this.communeRepository.save(
+          area.builder().nameCommune("Mairie_"+request.getNamecommune()).build());
           
     //verification email      
     if(!request.getEmail().contains("@") || !request.getEmail().contains(".")){
@@ -110,7 +110,7 @@ public ResponseEntity<?> Register( SignupRequest request){
 
    //Activation de compte Admin + Commune enregistré
 
-   public ResponseEntity<?> activationAdmin(ActiveCode activationCompteAdmin) {
+   public ResponseEntity<?> activationAdmin(ActiveCodeRequest activationCompteAdmin) {
     try{Validation codex = this.validationService.getValidation(activationCompteAdmin.getCode());
 
         if (Instant.now().isAfter(codex.getExpirationCode())) {
@@ -134,7 +134,7 @@ public ResponseEntity<?> Register( SignupRequest request){
 
 
   // login + Commune
-  public String loginService(LoginAdmin loginAdmin) {
+  public String loginService(LoginAdminRequest loginAdmin) {
   
     String retour=null;
     try{
@@ -154,7 +154,7 @@ public ResponseEntity<?> Register( SignupRequest request){
 
              
  // activation login ( generation de token JWT)
-  public SignupResponse activationLogin(ActiveCode activeCode){
+  public SignupResponse activationLogin(ActiveCodeRequest activeCode){
     String tokenX=null;
     try{Validation codex = this.validationService.getValidation(activeCode.getCode());
 
@@ -178,7 +178,7 @@ public ResponseEntity<?> Register( SignupRequest request){
 
 
   // renvoi de code d'activation de compte admin de commune
-   public ResponseEntity<?> renvoiCode(ReactivedCompte reactived) {
+   public ResponseEntity<?> renvoiCode(ReactivedCompteRequest reactived) {
     Utilisateur alpha=null;
     
       
@@ -201,7 +201,7 @@ public ResponseEntity<?> Register( SignupRequest request){
 /***************************************************************************************************/
 
 //modifier mot de passe
-public void resetpassword(ReactivedCompte UpdateMotDePasse) {
+public void resetpassword(ReactivedCompteRequest UpdateMotDePasse) {
   Utilisateur subscriber = (Utilisateur) this.utilisateurService.loadUserByUsername(UpdateMotDePasse.getEmail());
   log.info(subscriber.getUsername());
   this.validationService.createCode(subscriber, null);
@@ -209,7 +209,7 @@ public void resetpassword(ReactivedCompte UpdateMotDePasse) {
 
 /**************************************************************************************************/
 //nouveau mot de passe
-public void newpassword(NewPassword nouveauMotDePasse)  {
+public void newpassword(NewPasswordRequest nouveauMotDePasse)  {
   Utilisateur subscriber = (Utilisateur) this.utilisateurService.loadUserByUsername(nouveauMotDePasse.getEmail());
   final Optional<Validation> code = Optional.ofNullable(validationService.getValidation(nouveauMotDePasse.getCode()));
   if (code.isPresent()) {
@@ -223,7 +223,7 @@ public void newpassword(NewPassword nouveauMotDePasse)  {
 
 
   //desactiver souscripteur USER
-  public ResponseEntity<?> deletesouscripteur(ReactivedCompte emailSouscripteur) throws Exception {
+  public ResponseEntity<?> deletesouscripteur(ReactivedCompteRequest emailSouscripteur) throws Exception {
     String email = emailSouscripteur.getEmail();
     Utilisateur souscris = this.utilisateurRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Subscriber not found"));
 

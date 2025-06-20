@@ -28,8 +28,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-@Table(name = "certificatMariage")
-public class CertificatMariage {
+@Table(name = "wedding")
+public class Wedding {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
 
@@ -64,7 +64,7 @@ public class CertificatMariage {
   private String nomMereEpouse;
 
 // regime mariage
-@Enumerated(value = EnumType.ORDINAL)
+@Enumerated(value = EnumType.STRING)
 private RegimeMariage regimeMariage;
 
   // date de delivrance mariage
@@ -74,7 +74,7 @@ private RegimeMariage regimeMariage;
 //les communes 
 @ManyToOne
 @JoinColumn(name = "commune_id")
-  private Commune commune;
+  private area commune;
 
 //utilisateur
 @ManyToOne

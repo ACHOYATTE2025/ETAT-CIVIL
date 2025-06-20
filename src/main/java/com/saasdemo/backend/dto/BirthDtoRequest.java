@@ -5,7 +5,7 @@ import java.sql.Date;
 import lombok.Data;
 
 @Data
-public class ExtraitDto {
+public class BirthDtoRequest {
   private  String numeroExtrait;
   private  String lieuDelivrance;
   private  Date dateDelivrance;

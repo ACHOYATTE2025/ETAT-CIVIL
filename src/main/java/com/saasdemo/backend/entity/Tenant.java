@@ -2,6 +2,8 @@ package com.saasdemo.backend.entity;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.NaturalId;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -21,7 +23,7 @@ public class Tenant {
     private String id;
 
     private String name;
-
+    @NaturalId
     private String email;
 
     private String abonnementStatut;

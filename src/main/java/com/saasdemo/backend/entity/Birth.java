@@ -23,8 +23,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "extraitNaissance")
-public class ExtraitNaissance {
+@Table(name = "birth")
+public class Birth {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -62,17 +62,6 @@ public class ExtraitNaissance {
   private Date deces;
   
 
-
-
- /* @Lob
-  Byte[] carnet;
-  
-  @Lob
-  Byte[] cni1;
-
-  @Lob
-  Byte[] cni2;*/
-
 //utilisateur
 @ManyToOne
 @JoinColumn(name = "utilisateur_id")
@@ -80,7 +69,7 @@ private Utilisateur utilisateur;
 
 @ManyToOne
 @JoinColumn(name = "commune_id")
-  private Commune commune;
+  private area commune;
 
 //données extrait
  @ManyToOne

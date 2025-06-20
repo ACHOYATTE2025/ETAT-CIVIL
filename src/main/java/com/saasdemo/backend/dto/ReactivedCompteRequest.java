@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class ReactivedCompte {
+public class ReactivedCompteRequest {
   @NotBlank
   private String email;
     

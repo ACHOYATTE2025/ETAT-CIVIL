@@ -2,7 +2,7 @@ package com.saasdemo.backend.service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.http.HttpStatusCode;
@@ -11,12 +11,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.config.MagicID;
-import com.saasdemo.backend.dto.CertificatDto;
-import com.saasdemo.backend.entity.CertificatMariage;
+import com.saasdemo.backend.dto.WeddingDtoRequest;
+import com.saasdemo.backend.dto.WeddingDtoResponse;
 import com.saasdemo.backend.entity.Registre;
 import com.saasdemo.backend.entity.Utilisateur;
-import com.saasdemo.backend.repository.CertificatMariageRepository;
+import com.saasdemo.backend.entity.Wedding;
+import com.saasdemo.backend.mapper.WeddingDtoMapper;
 import com.saasdemo.backend.repository.RegistreRepository;
+import com.saasdemo.backend.repository.WeddingRepository;
 import com.saasdemo.backend.security.TenantContext;
 
 import jakarta.transaction.Transactional;
@@ -26,9 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class CertificatMariageService {
-  private final CertificatMariageRepository certificatMariageRepository;
+public class WeddingService {
+  private final WeddingRepository certificatMariageRepository;
   private final RegistreRepository registreRepository;
+  private final WeddingDtoMapper weddingDtoMapper;
   private  ResponseEntity XXX;
 
 
@@ -40,13 +43,13 @@ public class CertificatMariageService {
   /*==============================================*/
 
   //CREER UN CERTIFICAT DE MARIAGE
-  public ResponseEntity<?> creerCertificat(CertificatDto certificat) {
+  public ResponseEntity<?> weddingCreation(WeddingDtoRequest certificat) {
     Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     //configurer le tenant
     TenantContext.setCurrentTenantId(usex.getCommune().getId());
-    Optional<List<CertificatMariage>> certi = this.certificatMariageRepository.findByNumeroCertificatMariageAndCommune(certificat.getNumeroCertificatMariage(),usex.getCommune());
+    List<Wedding> certi = this.certificatMariageRepository.findByNumeroCertificatMariageAndCommune(certificat.getNumeroCertificatMariage(),usex.getCommune());
 
-    if(certi.get().size()==0){
+    if(certi.isEmpty()){
 
       // configurer le registre
           Registre regis = Registre.builder()
@@ -54,7 +57,7 @@ public class CertificatMariageService {
                           .build();
           this.registreRepository.save(regis);
     
-      CertificatMariage certificamariage= CertificatMariage.builder()
+      Wedding certificamariage= Wedding.builder()
                                         .numeroCertificatMariage(certificat.getNumeroCertificatMariage()) 
                                         .commune(usex.getCommune())
                                         .dateDelivranceDocument(LocalDate.now())
@@ -76,9 +79,10 @@ public class CertificatMariageService {
                                         .professionEpoux(certificat.getNomEpoux())
                                         .regimeMariage(certificat.getRegimeMariage())
                                         .registre(regis)
+                                        .utilisateur(usex)
                                         .build();
       this.certificatMariageRepository.save(certificamariage);
-      XXX= ResponseEntity.ok().body("CERTIFICAT DE MARIAGE CREE N° "+ certificat.getNumeroCertificatMariage());}
+      XXX= ResponseEntity.ok().body("CERTIFICAT DE MARIAGE  N° "+ certificat.getNumeroCertificatMariage()+" EST CREE");}
     else{
       XXX = ResponseEntity.badRequest().body("EXTRAIT DE NAISSANCE EST DEJA ENREGISTRE");
     }
@@ -88,12 +92,12 @@ public class CertificatMariageService {
 
 
 //modifier un certificat
-  public ResponseEntity<?> modifierCertificat(CertificatDto certificat, Long id) {
+  public ResponseEntity<?> updateWedding(WeddingDtoRequest certificat, Long id) {
     ResponseEntity TTT =null;
     Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
      //configurer le tenant
      TenantContext.setCurrentTenantId(usex.getCommune().getId());
-     CertificatMariage certi = this.certificatMariageRepository.findByIdAndCommune(id,usex.getCommune());
+     Wedding certi = this.certificatMariageRepository.findByIdAndCommune(id,usex.getCommune());
 
        
    if(certi==null){TTT = ResponseEntity.status(HttpStatusCode.valueOf(403)).body("CERTIFICAT DE MARIAGE INCONNU");}
@@ -126,17 +130,20 @@ public class CertificatMariageService {
 
 //Lire un ou les certificats
 
-  public Optional<List<CertificatMariage>> lireCertificats(String num) {
-     
-  boolean notEmpty = Strings.isNotEmpty(num);
-  Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+  public Stream<WeddingDtoResponse> readWedding(String num) {
+    boolean notEmpty = Strings.isNotEmpty(num);
+    Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   
-  if(notEmpty )
-      { CertificatMariage THOR = this.certificatMariageRepository.findByNumeroCertificatMariage(num);
+    if(notEmpty )
+      { Wedding THOR = this.certificatMariageRepository.findByNumeroCertificatMariage(num);
         if(THOR==null){throw new RuntimeException("CERTIFICAT DE MARIAGE INEXISTANT");}
        MagicID.magic=THOR.getId();
-       return this.certificatMariageRepository.findByNumeroCertificatMariageAndCommune(num,usex.getCommune());}
-    return this.certificatMariageRepository.findAllByCommune(usex.getCommune());
+       return this.certificatMariageRepository.findByNumeroCertificatMariageAndCommune(num,usex.getCommune())
+               .stream()
+               .map(weddingDtoMapper);}
+    return this.certificatMariageRepository.findAllByCommune(usex.getCommune())
+            .stream()
+            .map(weddingDtoMapper);
     
   }
 
@@ -144,12 +151,12 @@ public class CertificatMariageService {
 
 //suprrimer un certificat
 @Transactional
-  public String supprimerCertificat() {
-    CertificatMariage DEXA;
+  public String deleteWedding() {
+    Wedding DEXA;
   Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   TenantContext.setCurrentTenantId(usex.getId());
   try{
-    CertificatMariage Xtrait = this.certificatMariageRepository.findByIdAndCommune( MagicID.magic, usex.getCommune());
+    Wedding Xtrait = this.certificatMariageRepository.findByIdAndCommune( MagicID.magic, usex.getCommune());
     DEXA=Xtrait;
   }
    catch(Exception e){throw new RuntimeException("SUPPRESION IMPOSSIBLE-CERTIFICAT DE MARIAGE INTROUVABLE");}

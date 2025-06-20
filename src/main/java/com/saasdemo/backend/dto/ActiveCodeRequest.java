@@ -3,7 +3,7 @@ package com.saasdemo.backend.dto;
 import lombok.Data;
 
 @Data
-public class ActiveCode {
+public class ActiveCodeRequest {
   private String code;
     
 }
