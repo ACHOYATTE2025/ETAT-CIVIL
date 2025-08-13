@@ -20,12 +20,12 @@ public record WeddingDtoResponse(
 
         //information epouse
 
-         String nomEpouse,
-         String professionEpouse,
-         Date dateNaissanceEpouse,
-         String lieuNaissanceEpouse,
-         String domicileEpouse,
-         String nomPereEpouse,
-         String nomMereEpouse,
-        String name) {
+        String nomEpouse,
+        String professionEpouse,
+        Date dateNaissanceEpouse,
+        String lieuNaissanceEpouse,
+        String domicileEpouse,
+        String nomPereEpouse,
+        String nomMereEpouse,
+        String Regime) {
 }
