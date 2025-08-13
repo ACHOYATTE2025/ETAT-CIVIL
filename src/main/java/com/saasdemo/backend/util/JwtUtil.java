@@ -46,12 +46,12 @@ public JwtUtil(JwtRepository jwtRepository){
   @Value("${jwt.expiration}")
   private Long jwtexpiration;
 
-  public String generateToken( Utilisateur util){
-    this.disableToken(util);//desactiver le token actif 
+  public String generateToken( Utilisateur utilisateur){
+    this.disableToken(utilisateur);//desactiver le token actif 
     String jwtbearer = Jwts.builder()
-          .setSubject(util.getEmail())
-          .claim("role",util.getRole())
-          .claim("communeId",util.getCommune().getId())
+          .setSubject(utilisateur.getEmail())
+          .claim("role",utilisateur.getRole())
+          .claim("communeId",utilisateur.getCommune().getId())
           .setIssuedAt(new Date())
           .setExpiration(new Date(System.currentTimeMillis()+jwtexpiration))
           .signWith(SignatureAlgorithm.HS256,jwtSecret)
@@ -63,7 +63,7 @@ public JwtUtil(JwtRepository jwtRepository){
                   .valeur(jwtbearer.substring(0,jwtbearer.length()-1))
                   .desactive(false)
                   .expiration(false)
-                  .utilisateur(util)
+                  .utilisateur(utilisateur)
                   .build();
   this.jwtRepository.save(jwtbuild);
 

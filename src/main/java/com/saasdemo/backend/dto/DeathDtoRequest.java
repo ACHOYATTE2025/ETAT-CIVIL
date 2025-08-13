@@ -3,7 +3,7 @@ package com.saasdemo.backend.dto;
 import java.sql.Date;
 
 import lombok.Data;
-import lombok.Getter;
+
 
 @Data
 

@@ -2,12 +2,8 @@ package com.saasdemo.backend.service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
-import com.saasdemo.backend.dto.BirthDtoResponse;
-import com.saasdemo.backend.mapper.BirthDtoMapper;
-import com.saasdemo.backend.repository.UtilisateurRepository;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,9 +11,11 @@ import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.config.MagicID;
 import com.saasdemo.backend.dto.BirthDtoRequest;
+import com.saasdemo.backend.dto.BirthDtoResponse;
 import com.saasdemo.backend.entity.Birth;
 import com.saasdemo.backend.entity.Registre;
 import com.saasdemo.backend.entity.Utilisateur;
+import com.saasdemo.backend.mapper.BirthDtoMapper;
 import com.saasdemo.backend.repository.BirthRepository;
 import com.saasdemo.backend.repository.RegistreRepository;
 import com.saasdemo.backend.security.TenantContext;

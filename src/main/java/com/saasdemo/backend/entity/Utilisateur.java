@@ -21,6 +21,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -50,6 +51,7 @@ public class Utilisateur  implements UserDetails {
 
     @Column(nullable = false, unique = true)
     @Valid
+    @NaturalId
     private String email;
 
 
@@ -61,8 +63,10 @@ public class Utilisateur  implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    private Boolean active=false;
+    private Boolean active;
 
+    @OneToOne()
+    private Subscription subscription;
  
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "commune_id")

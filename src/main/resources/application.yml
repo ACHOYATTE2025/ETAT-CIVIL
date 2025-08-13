@@ -7,17 +7,19 @@ server:
     min-response-size: 128
   
   servlet:
-    context-path: /api/v1
+    context-path: /etatcivil/api/v1
 spring:
+  application:
+    name: SaasBackend
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: dreamcast1985
+    url: jdbc:mysql://localhost:3306/etatcivildb
+    driver-class-name:  com.mysql.cj.jdbc.Driver
+    username: root
+    password: Dreamcast1985.
   jpa:
-    
     show-sql: true
     hibernate:
+      dialect: org.hibernate.dialect.MySQL8Dialect
       ddl-auto: update
 
 

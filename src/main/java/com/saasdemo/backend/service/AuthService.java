@@ -15,9 +15,9 @@ import com.saasdemo.backend.dto.NewPasswordRequest;
 import com.saasdemo.backend.dto.ReactivedCompteRequest;
 import com.saasdemo.backend.dto.SignupRequest;
 import com.saasdemo.backend.dto.SignupResponse;
-import com.saasdemo.backend.entity.area;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.entity.Validation;
+import com.saasdemo.backend.entity.area;
 import com.saasdemo.backend.enums.GenderSLC;
 import com.saasdemo.backend.enums.Role;
 import com.saasdemo.backend.repository.CommuneRepository;
@@ -46,12 +46,14 @@ public class AuthService {
   private Utilisateur ux = null;
   private final AuthenticationManager authenticationManager;
   private JwtRepository jwtRepository ;
+ 
   
  
 
   //Instancier 
   public AuthService(CommuneRepository communeRepository,PasswordEncoder passwordEncoder,JwtUtil jwtUtil,
-  ValidationService validationService,UtilisateurRepository utilisateurRepository,UtilisateurService utilisateurService, AuthenticationManager authenticationManager){
+  ValidationService validationService,UtilisateurRepository utilisateurRepository,UtilisateurService utilisateurService,
+   AuthenticationManager authenticationManager){
     this.communeRepository=communeRepository;
     this.passwordEncoder =passwordEncoder;
     this.jwtUtil =jwtUtil;
@@ -59,7 +61,7 @@ public class AuthService {
     this.utilisateurRepository = utilisateurRepository;
     this.utilisateurService = utilisateurService;
     this.authenticationManager = authenticationManager;
-    this.jwtRepository = jwtRepository;
+    
   
    
   }
@@ -245,8 +247,8 @@ public void newpassword(NewPasswordRequest nouveauMotDePasse)  {
       return this.reponses;
 
 }
-   
-   
+
+  
 }
 
   

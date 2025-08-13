@@ -28,7 +28,11 @@ public class Jwt {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String valeur;
+
+    @Builder.Default
     private Boolean desactive=false;
+
+    @Builder.Default
     private Boolean expiration=false;
 
     @ManyToOne

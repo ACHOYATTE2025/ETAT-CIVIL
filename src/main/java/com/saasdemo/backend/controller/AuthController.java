@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -17,8 +18,10 @@ import com.saasdemo.backend.dto.NewPasswordRequest;
 import com.saasdemo.backend.dto.ReactivedCompteRequest;
 import com.saasdemo.backend.dto.SignupRequest;
 import com.saasdemo.backend.dto.SignupResponse;
+import com.saasdemo.backend.dto.SubscriptionDTO;
 import com.saasdemo.backend.dto.UserResponse;
 import com.saasdemo.backend.service.AuthService;
+import com.saasdemo.backend.service.SubscriptionService;
 import com.saasdemo.backend.service.UserService;
 import com.saasdemo.backend.util.JwtUtil;
 
@@ -29,14 +32,17 @@ import jakarta.validation.Valid;
 
 @RestController
 public class AuthController {
-  private final AuthService authService;
-  private final UserService userService;
-  private final JwtUtil jwtUtil;
+private final AuthService authService;
+private final UserService userService;
+private final JwtUtil jwtUtil;
+private final SubscriptionService subscriptionService;
 
-  public AuthController(AuthService authService,UserService userService, JwtUtil jwtUtil) {
+  public AuthController(AuthService authService,UserService userService, 
+  JwtUtil jwtUtil,SubscriptionService subscriptionService) {
     this.authService = authService;
     this.userService = userService;
     this.jwtUtil = jwtUtil;
+    this.subscriptionService = subscriptionService;
     
   }
 
@@ -125,4 +131,16 @@ public ResponseEntity<?>   deletesouscripteur(@RequestBody ReactivedCompteReques
            return this.authService.deletesouscripteur( emailSouscripteur);}
 
     
+
+
+//suscribe to services
+@PreAuthorize("hasRole('ADMIN')")
+@PostMapping("/subscriptions")
+public ResponseEntity<?> createSubscription(@PathVariable Long userId,@RequestBody SubscriptionDTO dto) {
+    this.subscriptionService.createSubscriptionForUser(dto);
+
+
+    return null;
+}
+           
 } 

@@ -19,7 +19,7 @@ import io.swagger.v3.oas.models.info.Info;
     name = "bearerAuth",
     type = SecuritySchemeType.HTTP,
     scheme = "bearer",
-    bearerFormat = "JWT"
+    bearerFormat = "JWT" 
 )
 public class SwaggerConfig {
 
@@ -30,7 +30,7 @@ public class SwaggerConfig {
         .title("API Gestion des États Civils")
         .version("1.0")
         .description("Documentation interactive de l'API de gestion des naissances, mariages, décès, etc."));
-
+        
   }
 
    

@@ -68,6 +68,7 @@ public class Wedding {
 private RegimeMariage regimeMariage;
 
   // date de delivrance mariage
+  @Builder.Default
   private LocalDate dateDelivranceDocument =LocalDate.now();
 
 

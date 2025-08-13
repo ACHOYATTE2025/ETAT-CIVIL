@@ -1,18 +1,13 @@
 package com.saasdemo.backend.mapper;
 
 import com.saasdemo.backend.dto.WeddingDtoResponse;
-import com.saasdemo.backend.entity.Registre;
+
 import com.saasdemo.backend.entity.Wedding;
-import com.saasdemo.backend.enums.RegimeMariage;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+
 import org.springframework.stereotype.Component;
 
-import java.sql.Date;
-import java.time.LocalDate;
 import java.util.function.Function;
+
 
 @Component
 public class WeddingDtoMapper implements Function<Wedding, WeddingDtoResponse> {

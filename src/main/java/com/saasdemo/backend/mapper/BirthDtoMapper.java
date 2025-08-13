@@ -1,12 +1,12 @@
 package com.saasdemo.backend.mapper;
 
 
-import com.saasdemo.backend.dto.BirthDtoResponse;
-import com.saasdemo.backend.entity.Birth;
+import java.util.function.Function;
+
 import org.springframework.stereotype.Component;
 
-import java.sql.Date;
-import java.util.function.Function;
+import com.saasdemo.backend.dto.BirthDtoResponse;
+import com.saasdemo.backend.entity.Birth;
 
 @Component
 public class BirthDtoMapper implements Function<Birth, BirthDtoResponse> {

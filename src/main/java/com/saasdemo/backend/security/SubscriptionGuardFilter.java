@@ -28,7 +28,7 @@ public class SubscriptionGuardFilter extends OncePerRequestFilter {
                 Long orgId = TenantContext.getCurrentTenantId();
 
                 if (orgId != null) {
-                    Optional<Subscription> subscription = subscriptionRepository.findSubscriptionByCommune(orgId);
+                    Optional<Subscription> subscription = subscriptionRepository.findActiveByCommuneId(orgId);
         
                     if (subscription.isEmpty()) {
                         HttpServletResponse res = (HttpServletResponse) response;
