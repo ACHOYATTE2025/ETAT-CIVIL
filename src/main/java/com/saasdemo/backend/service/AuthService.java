@@ -15,11 +15,12 @@ import com.saasdemo.backend.dto.NewPasswordRequest;
 import com.saasdemo.backend.dto.ReactivedCompteRequest;
 import com.saasdemo.backend.dto.SignupRequest;
 import com.saasdemo.backend.dto.SignupResponse;
+import com.saasdemo.backend.entity.Area;
+import com.saasdemo.backend.entity.Role;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.entity.Validation;
-import com.saasdemo.backend.entity.area;
 import com.saasdemo.backend.enums.GenderSLC;
-import com.saasdemo.backend.enums.Role;
+import com.saasdemo.backend.enums.TypeRole;
 import com.saasdemo.backend.repository.CommuneRepository;
 import com.saasdemo.backend.repository.JwtRepository;
 import com.saasdemo.backend.repository.UtilisateurRepository;
@@ -32,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
+
 public class AuthService {
 
 
@@ -72,26 +74,30 @@ public class AuthService {
 @Transactional
 public ResponseEntity<?> Register( SignupRequest request){
     ResponseEntity XXX=null;
+    
     //chercher la commune
-    area commune =  communeRepository.findByNameCommune(request.getNamecommune());
-    if(commune.getNameCommune() == request.getNamecommune()){
-      throw new RuntimeException("ADMIN ALREADY EXIST!!!!");
-    }
-    if(commune==null){
-          area communeX = this.communeRepository.save(
-          area.builder().nameCommune("Mairie_"+request.getNamecommune()).build());
+    Area commune =  communeRepository.findByNameCommune(request.getNamecommune());
+    
+    if(commune == null ){
           
-    //verification email      
+      Area area= Area.builder().nameCommune("Mairie_"+request.getNamecommune()).build();
+      Area communeX = this.communeRepository.save(area);
+          
+    //verification email
     if(!request.getEmail().contains("@") || !request.getEmail().contains(".")){
       throw new RuntimeException("EMAIL NON VALID");
-    }
+    } 
+
+      //paramettrer role
+        Role role = new Role();
+        role.setLibele(TypeRole.ADMIN);
           
         //implementer les données l'utilisateur
         Utilisateur utilisateur  = Utilisateur.builder()
                                   .email(request.getEmail())
                                   .username(request.getUsername())
                                   .password(passwordEncoder.encode(request.getPassword()))
-                                  .role(Role.ADMIN)
+                                  .role(role)
                                   .commune(communeX)
                                   .active(false)
                                   .build();
@@ -236,14 +242,14 @@ public void newpassword(NewPasswordRequest nouveauMotDePasse)  {
 
     log.info("USER A DESACTIVER :"+souscris.getEmail() + " ROLE :" +souscris.getRole()+ " ACTIF :"+souscris.getActive());
     
-        if(souscris.getActive() && souscris.getRole().name().equals("USER" ))
+        if(souscris.getActive() && souscris.getRole().getLibele().equals("USER"))
         {
           souscris.setActive(false);
           Utilisateur accord = this.utilisateurRepository.save(souscris);
           this.reponses = ResponseEntity.ok().body(accord.getRole()+" " + accord.getUsername() +" A ETE DESACTIVE");
         }
-        else if(!souscris.getActive() && souscris.getRole().name().equals("USER" )){
-          this.reponses =ResponseEntity.badRequest().body(souscris.getRole().name()+ " "+souscris.getUsername()+" EST DEJA DESACTIVE");
+        else if(!souscris.getActive() && souscris.getRole().getLibele().equals("USER" )){
+          this.reponses =ResponseEntity.badRequest().body(souscris.getRole().getLibele()+ " "+souscris.getUsername()+" EST DEJA DESACTIVE");
         }
         else{this.reponses =  ResponseEntity.badRequest().body(" IMPOSSIBLE DE DESACTIVER" );} 
       

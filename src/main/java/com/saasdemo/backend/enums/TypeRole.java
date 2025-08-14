@@ -8,7 +8,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 
-public enum Role {
+public enum TypeRole {
     SUPER_ADMIN,
     ADMIN,
     USER

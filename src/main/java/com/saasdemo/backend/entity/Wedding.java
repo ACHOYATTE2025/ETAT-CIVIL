@@ -29,7 +29,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "wedding")
-public class Wedding {
+public class Wedding extends BaseEntity{
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
 
@@ -75,7 +75,7 @@ private RegimeMariage regimeMariage;
 //les communes 
 @ManyToOne
 @JoinColumn(name = "commune_id")
-  private area commune;
+  private Area commune;
 
 //utilisateur
 @ManyToOne

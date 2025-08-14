@@ -9,12 +9,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.saasdemo.backend.enums.Role;
-
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -60,7 +57,8 @@ public class Utilisateur  implements UserDetails {
     @Valid
     private String password;
 
-    @Enumerated(EnumType.STRING)
+   
+    @OneToOne(cascade = CascadeType.ALL)
     private Role role;
 
     private Boolean active;
@@ -70,12 +68,12 @@ public class Utilisateur  implements UserDetails {
  
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "commune_id")
-    private area commune;// Référence à la commune
+    private Area commune;// Référence à la commune
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority("Role"+ this.role.toString()));
+        return Collections.singletonList(new SimpleGrantedAuthority("Role"+ this.role.getLibele()));
     }
 
     @Override

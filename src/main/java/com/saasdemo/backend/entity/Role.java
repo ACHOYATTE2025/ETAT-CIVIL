@@ -1,9 +1,10 @@
 package com.saasdemo.backend.entity;
 
-import org.hibernate.annotations.NaturalId;
+import com.saasdemo.backend.enums.TypeRole;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,18 +15,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "area")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class Area {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@AllArgsConstructor
+@NoArgsConstructor
+@Table(name = "role")
+public class Role {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(nullable = false, unique = true)
-    @NaturalId
-    private String nameCommune;
+  @Enumerated(EnumType.STRING)
+  private TypeRole libele;
+
+
     
 }

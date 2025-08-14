@@ -46,7 +46,7 @@ private final SubscriptionService subscriptionService;
     
   }
 
-  //Inscrir une commune et l'Admin
+  //Inscrire une commune et l'Admin
   @PostMapping("/registerAdmin")
   public ResponseEntity<?> registerAdmin( @RequestBody @Valid SignupRequest request) {
        return this.authService.Register(request);

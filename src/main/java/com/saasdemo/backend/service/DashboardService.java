@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.dto.DashboardResponse;
 import com.saasdemo.backend.entity.Utilisateur;
-import com.saasdemo.backend.enums.Role;
+import com.saasdemo.backend.enums.TypeRole;
 import com.saasdemo.backend.repository.DeathRepository;
 import com.saasdemo.backend.repository.WeddingRepository;
 import com.saasdemo.backend.repository.BirthRepository;
@@ -26,10 +26,10 @@ public class DashboardService {
   public DashboardResponse dash() {
    Utilisateur usx = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     TenantContext.setCurrentTenantId(usx.getCommune().getId());
-   Long nbreADMIN = this.utilisateurRepository.countByRoleAndCommuneId(Role.ADMIN,TenantContext.getCurrentTenantId());
-   Long  nbreUSER= this.utilisateurRepository.countByRoleAndCommuneId(Role.USER,TenantContext.getCurrentTenantId()); 
-   Long nbreUSERACTIVE = this.utilisateurRepository.countByRoleAndCommuneAndActive(Role.USER,usx.getCommune(),usx.getActive());
-   Long nbreADMINACTIVE = this.utilisateurRepository.countByRoleAndCommuneAndActive(Role.ADMIN,usx.getCommune(),usx.getActive());
+   Long nbreADMIN = this.utilisateurRepository.countByRoleAndCommuneId(TypeRole.ADMIN,TenantContext.getCurrentTenantId());
+   Long  nbreUSER= this.utilisateurRepository.countByRoleAndCommuneId(TypeRole.USER,TenantContext.getCurrentTenantId()); 
+   Long nbreUSERACTIVE = this.utilisateurRepository.countByRoleAndCommuneAndActive(TypeRole.USER,usx.getCommune(),usx.getActive());
+   Long nbreADMINACTIVE = this.utilisateurRepository.countByRoleAndCommuneAndActive(TypeRole.ADMIN,usx.getCommune(),usx.getActive());
    Long nbreCertificatDeces = this.certificatDecesRepository.countByCommune(usx.getCommune());
    Long nbreCertificatMariage = this.certificatMariageRepository.countByCommune(usx.getCommune());
    Long nbreExtraitNaissance = this.extraitNaissanceRepository.countByCommune(usx.getCommune());

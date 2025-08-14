@@ -11,7 +11,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,12 +18,11 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Table(name = "birth")
-public class Birth {
+public class Birth extends BaseEntity{
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -69,7 +67,7 @@ private Utilisateur utilisateur;
 
 @ManyToOne
 @JoinColumn(name = "commune_id")
-  private area commune;
+  private Area commune;
 
 //données extrait
  @ManyToOne

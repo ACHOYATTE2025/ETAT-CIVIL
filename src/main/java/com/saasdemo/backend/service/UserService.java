@@ -5,10 +5,11 @@ import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.dto.CreateUserRequest;
 import com.saasdemo.backend.dto.UserResponse;
+import com.saasdemo.backend.entity.Area;
+import com.saasdemo.backend.entity.Role;
 import com.saasdemo.backend.entity.Utilisateur;
-import com.saasdemo.backend.entity.area;
 import com.saasdemo.backend.enums.GenderSLC;
-import com.saasdemo.backend.enums.Role;
+import com.saasdemo.backend.enums.TypeRole;
 import com.saasdemo.backend.repository.CommuneRepository;
 import com.saasdemo.backend.repository.JwtRepository;
 import com.saasdemo.backend.repository.UtilisateurRepository;
@@ -20,13 +21,10 @@ public class UserService {
   private final UtilisateurRepository utilisateurRepository ;
     private final PasswordEncoder passwordEncoder;
     private final ValidationService validationService;
-    private JwtRepository jwtRepository;
-
     public UserService(JwtRepository jwtRepository, UtilisateurRepository utilisateurRepository, CommuneRepository communeRepository, PasswordEncoder passwordEncoder, NotificationService notificationService, ValidationService validationService) {
         this.utilisateurRepository = utilisateurRepository;
         this.passwordEncoder = passwordEncoder;
         this.validationService = validationService;
-        this.jwtRepository=jwtRepository;
       
     }
 
@@ -36,18 +34,21 @@ public class UserService {
     public Utilisateur createUser(CreateUserRequest request) {
         // Récupère l'organisation de l'admin connecté
         Utilisateur admin = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        area commune = admin.getCommune();
+        Area commune = admin.getCommune();
 
        if(!request.getEmail().contains("@") || !request.getEmail().contains(".") ){
         throw new RuntimeException("Your Email must be Correct!!!!!");
        }
-    
+        //mise en place du role
+        Role roleUser  = new Role();
+        roleUser.setLibele(TypeRole.USER);
+
         // Créer un nouvel utilisateur dans la même organisation
         Utilisateur newUser = Utilisateur.builder()
                 .username(request.getFullName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER) // Par défaut, l'utilisateur créé a le rôle USER
+                .role(roleUser) // Par défaut, l'utilisateur créé a le rôle USER
                 .active(true)
                 .commune(commune)
                 .build();
@@ -66,7 +67,7 @@ public class UserService {
             .id(user.getId())
             .fullName(user.getUsername())
             .email(user.getEmail())
-            .role(user.getRole().name())
+            .role(user.getRole())
             .communeName(user.getCommune().getNameCommune())
             .build();
     }

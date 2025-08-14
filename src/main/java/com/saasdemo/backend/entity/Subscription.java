@@ -42,7 +42,7 @@ public class Subscription {
     private Boolean active=false;
 
     @OneToOne
-    private area commune;
+    private Area commune;
 
     @OneToOne
     @JoinColumn(name = "utilisateurId")
