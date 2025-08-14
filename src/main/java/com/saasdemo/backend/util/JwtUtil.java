@@ -4,15 +4,19 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import com.saasdemo.backend.dto.ActiveCodeRequest;
+import com.saasdemo.backend.dto.SignupResponse;
 import com.saasdemo.backend.entity.Jwt;
+import com.saasdemo.backend.entity.RefreshToken;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.repository.JwtRepository;
 
@@ -25,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 
 
 
-@Component
+@Service
 @Slf4j
 @Transactional
 public class JwtUtil {
@@ -35,18 +39,19 @@ private final JwtRepository jwtRepository;
 
 public JwtUtil(JwtRepository jwtRepository){
   this.jwtRepository= jwtRepository;
- 
 }
   
   @Value("${jwt.key}")
-  private   String jwtSecret;
+  private  String jwtSecret;
 
 
   //20min
   @Value("${jwt.expiration}")
   private Long jwtexpiration;
 
-  public String generateToken( Utilisateur utilisateur){
+
+
+  public SignupResponse generateToken( Utilisateur utilisateur){
     this.disableToken(utilisateur);//desactiver le token actif 
     String jwtbearer = Jwts.builder()
           .setSubject(utilisateur.getEmail())
@@ -57,18 +62,33 @@ public JwtUtil(JwtRepository jwtRepository){
           .signWith(SignatureAlgorithm.HS256,jwtSecret)
           .compact();
 
-
+     //refresh token
+      RefreshToken  refreshTokenx =  RefreshToken.builder()
+                              .valeur(UUID.randomUUID().toString())
+                              .expire(false)
+                              .creation(Instant.now())
+                              .expiration(Instant.now().plusMillis(30*60*1000))
+                              .build();
+      //save jwt
       Jwt jwtbuild =
           Jwt.builder()
                   .valeur(jwtbearer.substring(0,jwtbearer.length()-1))
                   .desactive(false)
                   .expiration(false)
                   .utilisateur(utilisateur)
+                  .refreshToken(refreshTokenx)
                   .build();
-  this.jwtRepository.save(jwtbuild);
 
-  return jwtbearer;
+  this.jwtRepository.save(jwtbuild);
+  
+    
+  return new SignupResponse(jwtbearer,refreshTokenx.getValeur());
+
   }
+
+
+
+
 
 
   //methods claims
@@ -124,7 +144,7 @@ public ResponseEntity<?> deconex() {
 
 
 //suppresion journalière des tokens dans la base données
- @Scheduled(cron = "@hourly")
+ @Scheduled(cron = "@Daily")
     public void removeUselessToken(){
         log.info("supression Token invalid{}", Instant.now());
         this.jwtRepository.deleteByExpirationAndDesactive(true,true);
@@ -140,11 +160,20 @@ public ResponseEntity<?> deconex() {
                             jwt.setExpiration(true);
                         }
                 ).toList();
-        this.jwtRepository.saveAll(jwtList);
+        this.jwtRepository.saveAll(jwtList);}
 
-
-    
-}
+   
+  //production de refresh Token
+    public SignupResponse refreshtoken(ActiveCodeRequest refreshTokenRequest) {
+      final Jwt jwt= this.jwtRepository.findByRefreshToken(refreshTokenRequest.getCode())
+          .orElseThrow(()-> new RuntimeException("Token Invalid"));
+          if(jwt.getRefreshToken().isExpire() || jwt.getRefreshToken().getExpiration().isBefore(Instant.now())){
+            throw new RuntimeException("Token Invalid ");
+          };
+        SignupResponse tokens= this.generateToken(jwt.getUtilisateur());
+        System.out.println("Token  "+ tokens);
+        return tokens;
+    }
 }
 
 

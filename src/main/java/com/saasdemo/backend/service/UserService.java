@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.dto.CreateUserRequest;
 import com.saasdemo.backend.dto.UserResponse;
-import com.saasdemo.backend.entity.area;
 import com.saasdemo.backend.entity.Utilisateur;
+import com.saasdemo.backend.entity.area;
 import com.saasdemo.backend.enums.GenderSLC;
 import com.saasdemo.backend.enums.Role;
 import com.saasdemo.backend.repository.CommuneRepository;
@@ -38,9 +38,10 @@ public class UserService {
         Utilisateur admin = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         area commune = admin.getCommune();
 
-        this.utilisateurRepository.findByEmail(request.getEmail()); 
+       if(!request.getEmail().contains("@") || !request.getEmail().contains(".") ){
+        throw new RuntimeException("Your Email must be Correct!!!!!");
+       }
     
-
         // Créer un nouvel utilisateur dans la même organisation
         Utilisateur newUser = Utilisateur.builder()
                 .username(request.getFullName())
@@ -60,7 +61,7 @@ public class UserService {
     public UserResponse getCurrentUser() {
       Utilisateur user = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-      if(user==null){throw new RuntimeException("ANYONE CONNECTED");}
+      if(user==null){throw new RuntimeException("NOBODY CONNECTED");}
       return UserResponse.builder()
             .id(user.getId())
             .fullName(user.getUsername())

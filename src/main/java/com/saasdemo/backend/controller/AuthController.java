@@ -46,24 +46,24 @@ private final SubscriptionService subscriptionService;
     
   }
 
-  //enregistrer une commune et l'Admin
-  @PostMapping("/register")
-  public ResponseEntity<?> register( @RequestBody @Valid SignupRequest request) {
+  //Inscrir une commune et l'Admin
+  @PostMapping("/registerAdmin")
+  public ResponseEntity<?> registerAdmin( @RequestBody @Valid SignupRequest request) {
        return this.authService.Register(request);
      
   }
   
   //activer le compte de l'Admin
  
-  @PreAuthorize("hasRole('ADMIN')")
+ 
   @PostMapping("/accountActivation")
-  public ResponseEntity<?> postMethodName(@RequestBody ActiveCodeRequest activationCompteAdmin) {
+  public ResponseEntity<?> ActiveAdminAccount(@RequestBody ActiveCodeRequest activationCompteAdmin) {
       return this.authService.activationAdmin(activationCompteAdmin);
        }
 
   
 //Login 
-@PreAuthorize("hasAnyRole('ADMIN','USER')")
+
 @PostMapping("/login")
 public String loginAdmin(@Valid @RequestBody LoginAdminRequest loginAdmin){
    return this.authService.loginService(loginAdmin);
@@ -71,11 +71,19 @@ public String loginAdmin(@Valid @RequestBody LoginAdminRequest loginAdmin){
 
 
 //activation login
-@PreAuthorize("hasAnyRole('ADMIN','USER')")
+//@PreAuthorize("hasAnyRole('ADMIN','USER')")
   @PostMapping("/activationLogin")
   public SignupResponse loginActivation(@RequestBody ActiveCodeRequest activationLogin) {
       return this.authService.activationLogin(activationLogin);
        }
+
+//refresh Token
+//@PreAuthorize("hasAnyRole('USER')")
+  @PostMapping("/refreshtoken")
+  public  SignupResponse refreshToken(@RequestBody ActiveCodeRequest refreshTokenRequest) {
+       return this.jwtUtil.refreshtoken(refreshTokenRequest);
+       }
+
 
  //renvoi code d'activation
  //@PreAuthorize("hasAnyAuthority('ADMIN')" )
@@ -118,7 +126,7 @@ public UserResponse getMethodName() {
 
 //deconnexion
 @PreAuthorize("hasAnyRole('SUPERADMIN','ADMIN','USER')")
-@PostMapping(path = "/end")
+@PostMapping(path = "/deconnexion")
 public ResponseEntity<?> deconex()  {
    return this.jwtUtil.deconex();
 }

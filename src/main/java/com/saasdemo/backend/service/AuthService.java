@@ -74,8 +74,10 @@ public ResponseEntity<?> Register( SignupRequest request){
     ResponseEntity XXX=null;
     //chercher la commune
     area commune =  communeRepository.findByNameCommune(request.getNamecommune());
-    
-        if(commune==null){
+    if(commune.getNameCommune() == request.getNamecommune()){
+      throw new RuntimeException("ADMIN ALREADY EXIST!!!!");
+    }
+    if(commune==null){
           area communeX = this.communeRepository.save(
           area.builder().nameCommune("Mairie_"+request.getNamecommune()).build());
           
@@ -154,26 +156,29 @@ public ResponseEntity<?> Register( SignupRequest request){
     return retour;    
     }
 
-             
+  
  // activation login ( generation de token JWT)
   public SignupResponse activationLogin(ActiveCodeRequest activeCode){
-    String tokenX=null;
+        SignupResponse tokenx = new SignupResponse("", "");
     try{Validation codex = this.validationService.getValidation(activeCode.getCode());
-
-      if (Instant.now().isAfter(codex.getExpirationCode())) {
-        throw new RuntimeException("Le Code d'Activation a expirée");}
-  
-      Utilisateur subscriberActivatedorNot = this.utilisateurRepository.findByEmail(codex.getUtilisateur().getEmail()).
-              orElseThrow(() -> new RuntimeException(codex.getUtilisateur().getRole()+" n'exite pas "));
+          System.out.println("codex :"+codex);
+        
+          if (Instant.now().isAfter(codex.getExpirationCode())) {
+            throw new RuntimeException("Le Code d'Activation a expirée");}
       
-      String  token =this.jwtUtil.generateToken(subscriberActivatedorNot);tokenX=token; 
-     
-    }
+          Utilisateur subscriberActivated = this.utilisateurRepository.findByEmail(codex.getUtilisateur().getEmail()).
+                  orElseThrow(() -> new RuntimeException(codex.getUtilisateur().getRole()+" n'exite pas "));
+          
+          tokenx =this.jwtUtil.generateToken(subscriberActivated);
+          
+         
+          System.out.println("TOKEN "+ tokenx);
+              }
     
-      catch(Exception e){tokenX="LE COMPTE N'A PU ÊTRE ACTIVE =>"+e.getLocalizedMessage();}
+    catch(Exception e){ tokenx= null;}
     
       
-      return new SignupResponse(tokenX);
+      return tokenx;
      
   
 }
