@@ -1,9 +1,12 @@
 package com.saasdemo.backend.service;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.dto.CreateUserRequest;
+import com.saasdemo.backend.dto.ResponseDto;
 import com.saasdemo.backend.dto.UserResponse;
 import com.saasdemo.backend.entity.Area;
 import com.saasdemo.backend.entity.Role;
@@ -31,9 +34,10 @@ public class UserService {
 
 
     //creation des users par un Admin d'une commune
-    public Utilisateur createUser(CreateUserRequest request) {
+    public ResponseEntity<ResponseDto> createUser(CreateUserRequest request) {
+        ResponseEntity<ResponseDto> respondx = null;
         // Récupère l'organisation de l'admin connecté
-        Utilisateur admin = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        try {Utilisateur admin = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Area commune = admin.getCommune();
 
        if(!request.getEmail().contains("@") || !request.getEmail().contains(".") ){
@@ -54,7 +58,18 @@ public class UserService {
                 .build();
        
         this.validationService.createCode(newUser,GenderSLC.USER_CREATION);
-        return this.utilisateurRepository.save(newUser);
+        this.utilisateurRepository.save(newUser);
+        respondx = ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new ResponseDto(200,request.getFullName()+" CREATED SUCCESSFULL"));
+      }
+    catch(Exception e){return  
+        respondx = ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ResponseDto(401,"USER CREATION FAILED"));
+      }
+
+    return respondx;
     }
 
 

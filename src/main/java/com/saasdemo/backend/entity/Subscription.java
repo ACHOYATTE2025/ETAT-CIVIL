@@ -1,6 +1,7 @@
 package com.saasdemo.backend.entity;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 import com.saasdemo.backend.enums.StatutAbonnement;
@@ -34,7 +35,7 @@ public class Subscription {
 
     @Enumerated(EnumType.STRING) // Pour stocker l'énum en texte
     private StatutAbonnement status; // active, expired, pending,trial
-    private LocalDateTime createdAt ;
+    private Instant createdAt ;
     private LocalDateTime endDate;
     private BigDecimal amount; //en franc cfa
 

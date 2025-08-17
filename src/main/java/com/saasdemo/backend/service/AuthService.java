@@ -3,6 +3,7 @@ package com.saasdemo.backend.service;
 import java.time.Instant;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,6 +14,7 @@ import com.saasdemo.backend.dto.ActiveCodeRequest;
 import com.saasdemo.backend.dto.LoginAdminRequest;
 import com.saasdemo.backend.dto.NewPasswordRequest;
 import com.saasdemo.backend.dto.ReactivedCompteRequest;
+import com.saasdemo.backend.dto.ResponseDto;
 import com.saasdemo.backend.dto.SignupRequest;
 import com.saasdemo.backend.dto.SignupResponse;
 import com.saasdemo.backend.entity.Area;
@@ -72,8 +74,8 @@ public class AuthService {
 
 //Enregistrer une Commune + son Admin
 @Transactional
-public ResponseEntity<?> Register( SignupRequest request){
-    ResponseEntity XXX=null;
+public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
+    ResponseEntity<ResponseDto> XXX=null;
     
     //chercher la commune
     Area commune =  communeRepository.findByNameCommune(request.getNamecommune());
@@ -108,10 +110,14 @@ public ResponseEntity<?> Register( SignupRequest request){
       this.communeRepository.save(utilisateur);
         //envoyer le code pour activer le compte admin
         this.validationService.createCode(utilisateur, GenderSLC.SIGNUP);
-        XXX= ResponseEntity.ok().body(" VOTRE CODE VALIDATION A ETE ENVOYE");
+        XXX= ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(new ResponseDto(200, " VOTRE CODE VALIDATION A ETE ENVOYE"));
 
        
-        }else{ XXX= ResponseEntity.ok().body(" VOUS ÊTES DEJA INSCRIT");}
+        }else{ XXX= ResponseEntity
+          .status(HttpStatus.BAD_REQUEST)
+          .body(new ResponseDto(406, " VOUS ÊTES DEJA INSCRIT"));}
       
         return XXX;
         
@@ -120,7 +126,7 @@ public ResponseEntity<?> Register( SignupRequest request){
 
    //Activation de compte Admin + Commune enregistré
 
-   public ResponseEntity<?> activationAdmin(ActiveCodeRequest activationCompteAdmin) {
+   public ResponseEntity<ResponseDto> activationAdmin(ActiveCodeRequest activationCompteAdmin) {
     try{Validation codex = this.validationService.getValidation(activationCompteAdmin.getCode());
 
         if (Instant.now().isAfter(codex.getExpirationCode())) {
@@ -132,11 +138,16 @@ public ResponseEntity<?> Register( SignupRequest request){
         this.utilisateurRepository.save(subscriberActivatedorNot);
         
       
-        this.reponses = ResponseEntity.ok().body("LE COMPTE DE "+subscriberActivatedorNot.getRole()+" "+ subscriberActivatedorNot.getUsername()+
-        " EST ACTIVEE");
+        this.reponses = ResponseEntity
+                    .status(HttpStatus.GONE)
+                    .body(new ResponseDto(200, "LE COMPTE DE "+subscriberActivatedorNot.getRole().getLibele()+" "+ subscriberActivatedorNot.getUsername()+
+        " EST ACTIVEE"));
         this.jwtUtil.disableToken(subscriberActivatedorNot);
   } 
-    catch(Exception e){this.reponses= ResponseEntity.badRequest().body("LE COMPTE N'A PU ÊTRE ACTIVE =>"+e.getLocalizedMessage());}
+    catch(Exception e){this.reponses= ResponseEntity 
+      .status(HttpStatus.BAD_REQUEST)
+      .body(new ResponseDto(401, "LE COMPTE N'A PU ÊTRE ACTIVE -> "+e.getLocalizedMessage()));}
+    
     
     return this.reponses;
    
@@ -144,9 +155,9 @@ public ResponseEntity<?> Register( SignupRequest request){
 
 
   // login + Commune
-  public String loginService(LoginAdminRequest loginAdmin) {
+  public ResponseEntity<ResponseDto> loginService(LoginAdminRequest loginAdmin) {
   
-    String retour=null;
+    ResponseEntity<ResponseDto> retour=null;
     try{
       this.ux =  (Utilisateur) this.utilisateurService.loadUserByUsername(loginAdmin.getEmail());
       authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
@@ -155,11 +166,17 @@ public ResponseEntity<?> Register( SignupRequest request){
                        TenantContext.setCurrentTenantId(ux.getCommune().getId());
                        System.out.println("TEANT ID :"+TenantContext.getCurrentTenantId());
                       this.validationService.createCode(ux,GenderSLC.LOGIN);
-                      return retour=" CODE VALIDATION ENVOYE";
+                      return (ResponseEntity<ResponseDto>) (retour =ResponseEntity
+                      .status(HttpStatus.GONE)
+                      .body(new ResponseDto(200, " CODE VALIDATION ENVOYE")));
+                      
                       }
-    catch(Exception e){retour="ADMIN NON AUTHENTIFIE=>"+e.getLocalizedMessage();}
+    catch(Exception e){
+      retour = ResponseEntity
+                      .status(HttpStatus.NOT_ACCEPTABLE)
+                      .body(new ResponseDto(406, e.getLocalizedMessage()));}
           
-    return retour;    
+       return  retour;
     }
 
   
@@ -191,19 +208,33 @@ public ResponseEntity<?> Register( SignupRequest request){
 
 
   // renvoi de code d'activation de compte admin de commune
-   public ResponseEntity<?> renvoiCode(ReactivedCompteRequest reactived) {
+   public ResponseEntity<ResponseDto> renvoiCode(ReactivedCompteRequest reactived) {
     Utilisateur alpha=null;
+    ResponseEntity<ResponseDto> respond = null;
     
       
         Utilisateur subscriber =   (Utilisateur) this.utilisateurService.loadUserByUsername(reactived.getEmail());
         
         alpha=subscriber;
-        if(alpha.getActive()){ new RuntimeException("LE COMPTE DE L'ADMIN "+  alpha.getUsername()+" EST DEJA ACTIVEE");
-        return ResponseEntity.badRequest().body("LE COMPTE DE L'ADMIN "+  alpha.getUsername()+" EST DEJA ACTIVEE");
-      }else if(!subscriber.getActive()){
-        this.validationService.createCode(subscriber, GenderSLC.SIGNUP);
-        return ResponseEntity.ok().body("CODE D'ACTIVATION ENVOYE");}
-      else{return ResponseEntity.badRequest().body("ADMIN INCONNU");}
+        if(alpha.getActive()){
+          new RuntimeException("LE COMPTE DE L'ADMIN "+  alpha.getUsername()+" EST DEJA ACTIVEE");
+          return
+            respond = ResponseEntity
+            .status(HttpStatus.FOUND)
+            .body(new ResponseDto(200, "LE COMPTE DE L'ADMIN "+  alpha.getUsername()+" EST DEJA ACTIVEE"));
+        }
+
+        else if(!subscriber.getActive()){
+          this.validationService.createCode(subscriber, GenderSLC.SIGNUP);
+          return 
+          respond = ResponseEntity
+          .status(HttpStatus.FOUND)
+          .body(new ResponseDto(200, "CODE D'ACTIVATION ENVOYE"));}
+        else{
+          return 
+          respond=ResponseEntity
+          .status(HttpStatus.BAD_REQUEST)
+          .body(new ResponseDto(401, "ADMIN INCONNU"));}
         
       }
         
@@ -234,35 +265,28 @@ public void newpassword(NewPasswordRequest nouveauMotDePasse)  {
 
   }
 
-
-  //desactiver souscripteur USER
+ //desactiver souscripteur USER
   public ResponseEntity<?> deletesouscripteur(ReactivedCompteRequest emailSouscripteur) throws Exception {
     String email = emailSouscripteur.getEmail();
     Utilisateur souscris = this.utilisateurRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Subscriber not found"));
 
     log.info("USER A DESACTIVER :"+souscris.getEmail() + " ROLE :" +souscris.getRole()+ " ACTIF :"+souscris.getActive());
-    
-        if(souscris.getActive() && souscris.getRole().getLibele().equals("USER"))
+
+        if(souscris.getActive() && souscris.getRole().getLibele().equals("USER" ))
         {
           souscris.setActive(false);
           Utilisateur accord = this.utilisateurRepository.save(souscris);
-          this.reponses = ResponseEntity.ok().body(accord.getRole()+" " + accord.getUsername() +" A ETE DESACTIVE");
+          this.reponses = ResponseEntity.ok().body(accord.getRole().getLibele()+" " + accord.getUsername() +" A ETE DESACTIVE");
         }
-        else if(!souscris.getActive() && souscris.getRole().getLibele().equals("USER" )){
+        else if(!souscris.getActive() && souscris.getRole().equals("USER" )){
           this.reponses =ResponseEntity.badRequest().body(souscris.getRole().getLibele()+ " "+souscris.getUsername()+" EST DEJA DESACTIVE");
         }
-        else{this.reponses =  ResponseEntity.badRequest().body(" IMPOSSIBLE DE DESACTIVER" );} 
-      
-     
-      
-      return this.reponses;
+        else{this.reponses =  ResponseEntity.badRequest().body(" IMPOSSIBLE DE DESACTIVER" );}
+        
+        
+           return this.reponses;}
 
 }
-
-  
-}
-
-  
 
 
 

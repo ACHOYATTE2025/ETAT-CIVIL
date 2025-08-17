@@ -8,12 +8,14 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.dto.ActiveCodeRequest;
+import com.saasdemo.backend.dto.ResponseDto;
 import com.saasdemo.backend.dto.SignupResponse;
 import com.saasdemo.backend.entity.Jwt;
 import com.saasdemo.backend.entity.RefreshToken;
@@ -119,9 +121,9 @@ public Jwt tokenByValue(String token) {
 }
 
 //end se deconnecter
-public ResponseEntity<?> deconex() {
+public ResponseEntity<ResponseDto> deconex() {
   Utilisateur utix = new Utilisateur();
-  ResponseEntity avad = null;
+  ResponseEntity<ResponseDto> avad = null;
   Optional<Jwt> jx = Optional.ofNullable(new Jwt());
   try{    
 
@@ -132,8 +134,16 @@ public ResponseEntity<?> deconex() {
   System.out.println("  DESACT "+jx.get().getDesactive() +" " + " EXPIRA "+jx.get().getExpiration());
  if(jx.get().getDesactive()!=true && jx.get().getExpiration()!=true){
     disableToken(utix);
-    avad= ResponseEntity.ok().body(utix.getUsername() +" EST DECONNECTE");}
-  else {avad=ResponseEntity.badRequest().body(utix.getUsername()+" EST DEJA DECONNECTE");}
+
+    avad= ResponseEntity
+    .status(HttpStatus.ACCEPTED)
+    .body( new ResponseDto(200, utix.getUsername() +" EST DECONNECTE"));}
+
+  else {
+    avad=ResponseEntity
+    .status(HttpStatus.BAD_REQUEST)
+    .body(new ResponseDto(401, utix.getUsername()+" EST DEJA DECONNECTE"));}
+
     return  avad;
  }
  

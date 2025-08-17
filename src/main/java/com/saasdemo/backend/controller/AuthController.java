@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.saasdemo.backend.dto.ActiveCodeRequest;
 import com.saasdemo.backend.dto.CreateUserRequest;
+import com.saasdemo.backend.dto.ErrorResponseDto;
 import com.saasdemo.backend.dto.LoginAdminRequest;
 import com.saasdemo.backend.dto.NewPasswordRequest;
 import com.saasdemo.backend.dto.ReactivedCompteRequest;
+import com.saasdemo.backend.dto.ResponseDto;
 import com.saasdemo.backend.dto.SignupRequest;
 import com.saasdemo.backend.dto.SignupResponse;
 import com.saasdemo.backend.dto.SubscriptionDTO;
@@ -25,11 +27,21 @@ import com.saasdemo.backend.service.SubscriptionService;
 import com.saasdemo.backend.service.UserService;
 import com.saasdemo.backend.util.JwtUtil;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 
 
 
+@Tag(
+  name = " AUTH & CRUD  REST Api for ETAT CIVIL",
+  description="CRUD REST Api in  ETAT CIVIL APP to CREATE,READ,UPDATE,DELETE  details"
+)
 @RestController
 public class AuthController {
 private final AuthService authService;
@@ -47,38 +59,117 @@ private final SubscriptionService subscriptionService;
   }
 
   //Inscrire une commune et l'Admin
+  
+//create
+  @Operation(
+    summary="REST API to create new Admin into APP ETAT CIVIL",
+    description = "REST API to create new Account  inside ETAT CIVIL App "
+  )
+
+  @ApiResponse(
+    responseCode="201",
+    description = "HTTP Status CREATED"
+  )
   @PostMapping("/registerAdmin")
-  public ResponseEntity<?> registerAdmin( @RequestBody @Valid SignupRequest request) {
-       return this.authService.Register(request);
-     
+  public ResponseEntity<ResponseDto> registerAdmin( @RequestBody @Valid SignupRequest request)throws Exception {
+        return (ResponseEntity<ResponseDto>) this.authService.RegisterAdminService(request);
+       
   }
   
   //activer le compte de l'Admin
  
- 
+  @Operation(
+    summary="REST API to activate new Admin into APP ETAT CIVIL",
+    description = "REST API to activate new Account Admin  inside ETAT CIVIL APP"
+  )
+
+  @ApiResponses({
+    @ApiResponse(
+        responseCode="200",
+        description = "HTTP Status DONE",
+        content = @Content(
+            schema = @Schema(implementation = ResponseDto.class)) ),
+    
+    @ApiResponse(   
+        responseCode = "401",
+        description = "Activation  failed!!!",
+        content = @Content(
+            schema = @Schema(implementation = ErrorResponseDto.class)
+        )
+    )
+    }
+  )
   @PostMapping("/accountActivation")
-  public ResponseEntity<?> ActiveAdminAccount(@RequestBody ActiveCodeRequest activationCompteAdmin) {
-      return this.authService.activationAdmin(activationCompteAdmin);
+  public ResponseEntity<ResponseDto> ActiveAdminAccount(@RequestBody ActiveCodeRequest activationCompteAdmin) {
+      return (ResponseEntity<ResponseDto>) this.authService.activationAdmin(activationCompteAdmin);
+      
+
        }
 
   
 //Login 
+ @Operation(
+    summary="REST API to login  Admin or User into APP ETAT CIVIL",
+    description = "REST API to login  Admin or  User inside ETAT CIVIL APP"
+  )
 
+  @ApiResponses({
+    @ApiResponse(
+        responseCode="200",
+        description = "HTTP Status DONE",
+        content = @Content(
+            schema = @Schema(implementation = ResponseDto.class)) ),
+    
+    @ApiResponse(   
+
+        description = "Login  failed!!!",
+        content = @Content(
+            schema = @Schema(implementation = ErrorResponseDto.class)
+        )
+    )
+    }
+  )
 @PostMapping("/login")
-public String loginAdmin(@Valid @RequestBody LoginAdminRequest loginAdmin){
-   return this.authService.loginService(loginAdmin);
+public ResponseEntity<ResponseDto> loginAdmin(@Valid @RequestBody LoginAdminRequest loginAdmin){
+   return (ResponseEntity<ResponseDto>) this.authService.loginService(loginAdmin);
 }
 
 
 //activation login
-//@PreAuthorize("hasAnyRole('ADMIN','USER')")
-  @PostMapping("/activationLogin")
-  public SignupResponse loginActivation(@RequestBody ActiveCodeRequest activationLogin) {
+@Operation(
+    summary="REST API to activate login into APP ETAT CIVIL",
+    description = "REST API to activate login inside ETAT CIVIL APP"
+  )
+
+  @ApiResponses({
+    @ApiResponse(
+        responseCode="200",
+        description = "HTTP Status DONE",
+        content = @Content(
+            schema = @Schema(implementation = ResponseDto.class)) ),
+    
+    @ApiResponse(   
+        description = "Login Activation failed!!!",
+        content = @Content(
+            schema = @Schema(implementation = ErrorResponseDto.class)
+        )
+    )
+    }
+  )
+@PreAuthorize("hasAnyRole('ADMIN','USER')")
+@PostMapping("/activationLogin")
+public SignupResponse loginActivation(@RequestBody ActiveCodeRequest activationLogin) {
       return this.authService.activationLogin(activationLogin);
        }
 
+
+
 //refresh Token
-//@PreAuthorize("hasAnyRole('USER')")
+@Operation(
+    summary="REST API to make refreshtoken into APP ETAT CIVIL",
+    description = "REST API to make refreshtoken  inside ETAT CIVIL APP"
+  )
+@PreAuthorize("hasAnyRole('USER')")
   @PostMapping("/refreshtoken")
   public  SignupResponse refreshToken(@RequestBody ActiveCodeRequest refreshTokenRequest) {
        return this.jwtUtil.refreshtoken(refreshTokenRequest);
@@ -86,38 +177,86 @@ public String loginAdmin(@Valid @RequestBody LoginAdminRequest loginAdmin){
 
 
  //renvoi code d'activation
+ @Operation(
+    summary="REST API to reactivate admin account into APP ETAT CIVIL",
+    description = "REST API to reactivate admin account inside ETAT CIVIL APP"
+  )
+  @ApiResponses({
+    @ApiResponse(
+        responseCode="200",
+        description = "HTTP Status DONE",
+        content = @Content(
+            schema = @Schema(implementation = ResponseDto.class)) ),
+    
+    @ApiResponse(   
+        description = "Recativation failed!!!",
+        content = @Content(
+            schema = @Schema(implementation = ErrorResponseDto.class)
+        )
+    )
+    }
+  )
  //@PreAuthorize("hasAnyAuthority('ADMIN')" )
  @PostMapping(path = "/accountReactivation")
  public ResponseEntity<?> reactivationCompte(@RequestBody ReactivedCompteRequest reactived) throws Exception {
     return this.authService.renvoiCode(reactived);
  }
+
+
   
  // creation d'un user par un Admin
+  @Operation(
+    summary="REST API to create USER ACCOUNT into APP ETAT CIVIL",
+    description = "REST API to create USER ACCOUNT inside ETAT CIVIL APP"
+  )
+ @ApiResponses({
+    @ApiResponse(
+        responseCode="200",
+        description = "HTTP Status DONE",
+        content = @Content(
+            schema = @Schema(implementation = ResponseDto.class)) ),
+    
+    @ApiResponse(   
+        description = "User Creation failed!!!",
+        content = @Content(
+            schema = @Schema(implementation = ErrorResponseDto.class)
+        )
+    )
+    }
+  )
  @PostMapping("/userCreation")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createUser(@Validated @RequestBody CreateUserRequest request) {
-       this.userService.createUser(request);
-        return ResponseEntity.ok().body("L'USER "+request.getFullName()+" EST CREE");
+    public ResponseEntity<ResponseDto> createUser(@Validated @RequestBody CreateUserRequest request) {
+       return this.userService.createUser(request);
+       
     }
 
 
 // obtenir l'utilisateur connceté
 @PreAuthorize("hasAnyRole('SUPERADMIN','ADMIN','USER')")
- @GetMapping(path="/currentUser")
+@GetMapping(path="/currentUser")
 public UserResponse getMethodName() {
-   return this.userService.getCurrentUser();
+  return this.userService.getCurrentUser();
 }
 
 //modifier mot de passe
-    @ResponseStatus(value = HttpStatus.FOUND)
-    @PostMapping(path = "/resetPassword")
+@Operation(
+    summary="REST API to reset password USER into APP ETAT CIVIL",
+    description = "REST API to reset password USER inside ETAT CIVIL APP"
+  )
+@ResponseStatus(value = HttpStatus.FOUND)
+@PostMapping(path = "/resetPassword")
     public void ModifierMotDePasse(@RequestBody ReactivedCompteRequest UpdateMotDePasse) throws Throwable {
         this.authService.resetpassword(UpdateMotDePasse);
     }
 
  //nouveau mot de passe
-    @ResponseStatus(value = HttpStatus.CREATED)
-    @PostMapping(path = "/newPassword")
+ @Operation(
+    summary="REST API to make new password USER into APP ETAT CIVIL",
+    description = "REST API to make new  password USER inside ETAT CIVIL APP"
+  )
+  @ResponseStatus(value = HttpStatus.CREATED)
+  @PostMapping(path = "/newPassword")
     public void newpassword(@RequestBody NewPasswordRequest NouveauMotDePasse) throws Throwable {
         this.authService.newpassword(NouveauMotDePasse);
     }
@@ -125,6 +264,10 @@ public UserResponse getMethodName() {
 
 
 //deconnexion
+ @Operation(
+    summary="REST API to deconnect USER,ADMIN into APP ETAT CIVIL",
+    description = "REST API to deconnect USER,ADMIN inside ETAT CIVIL APP"
+  )
 @PreAuthorize("hasAnyRole('SUPERADMIN','ADMIN','USER')")
 @PostMapping(path = "/deconnexion")
 public ResponseEntity<?> deconex()  {
@@ -133,6 +276,10 @@ public ResponseEntity<?> deconex()  {
 
 
 //desactiver un souscripteur
+ @Operation(
+    summary="REST API to desactivate USER into APP ETAT CIVIL",
+    description = "REST API to desactivate USER inside ETAT CIVIL APP"
+  )
 @PostMapping(path="/userDeactivation")
 @PreAuthorize("hasRole('ADMIN')")
 public ResponseEntity<?>   deletesouscripteur(@RequestBody ReactivedCompteRequest emailSouscripteur) throws Exception {
@@ -142,6 +289,10 @@ public ResponseEntity<?>   deletesouscripteur(@RequestBody ReactivedCompteReques
 
 
 //suscribe to services
+ @Operation(
+    summary="REST API to subscribe  into APP ETAT CIVIL",
+    description = "REST API to subscribe inside ETAT CIVIL APP"
+  )
 @PreAuthorize("hasRole('ADMIN')")
 @PostMapping("/subscriptions")
 public ResponseEntity<?> createSubscription(@PathVariable Long userId,@RequestBody SubscriptionDTO dto) {
