@@ -1,6 +1,7 @@
 package com.saasdemo.backend.service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
@@ -19,12 +20,15 @@ import com.saasdemo.backend.dto.SignupRequest;
 import com.saasdemo.backend.dto.SignupResponse;
 import com.saasdemo.backend.entity.Area;
 import com.saasdemo.backend.entity.Role;
+import com.saasdemo.backend.entity.Subscription;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.entity.Validation;
 import com.saasdemo.backend.enums.GenderSLC;
+import com.saasdemo.backend.enums.StatutAbonnement;
 import com.saasdemo.backend.enums.TypeRole;
 import com.saasdemo.backend.repository.CommuneRepository;
-import com.saasdemo.backend.repository.JwtRepository;
+import com.saasdemo.backend.repository.RoleRepository;
+import com.saasdemo.backend.repository.SubscriptionRepository;
 import com.saasdemo.backend.repository.UtilisateurRepository;
 import com.saasdemo.backend.security.TenantContext;
 import com.saasdemo.backend.util.JwtUtil;
@@ -38,8 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 
 public class AuthService {
 
-
-  
+  private final JwtService jwtService;
   private final CommuneRepository communeRepository;
   private final PasswordEncoder passwordEncoder;
   private final JwtUtil jwtUtil;
@@ -49,7 +52,9 @@ public class AuthService {
   private  ResponseEntity reponses;
   private Utilisateur ux = null;
   private final AuthenticationManager authenticationManager;
-  private JwtRepository jwtRepository ;
+  private final SubscriptionRepository subscriptionRepository;
+  private final RoleRepository roleRepository;
+
  
   
  
@@ -57,7 +62,7 @@ public class AuthService {
   //Instancier 
   public AuthService(CommuneRepository communeRepository,PasswordEncoder passwordEncoder,JwtUtil jwtUtil,
   ValidationService validationService,UtilisateurRepository utilisateurRepository,UtilisateurService utilisateurService,
-   AuthenticationManager authenticationManager){
+   AuthenticationManager authenticationManager,SubscriptionRepository subscriptionRepository,RoleRepository roleRepository, JwtService jwtService){
     this.communeRepository=communeRepository;
     this.passwordEncoder =passwordEncoder;
     this.jwtUtil =jwtUtil;
@@ -65,6 +70,10 @@ public class AuthService {
     this.utilisateurRepository = utilisateurRepository;
     this.utilisateurService = utilisateurService;
     this.authenticationManager = authenticationManager;
+    this.subscriptionRepository = subscriptionRepository;
+    this.roleRepository = roleRepository;
+    this.jwtService = jwtService;
+   
     
   
    
@@ -78,7 +87,7 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
     ResponseEntity<ResponseDto> XXX=null;
     
     //chercher la commune
-    Area commune =  communeRepository.findByNameCommune(request.getNamecommune());
+    Optional<Area> commune =  communeRepository.findByNameCommune(request.getNamecommune());
     
     if(commune == null ){
           
@@ -91,10 +100,24 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
     } 
 
       //paramettrer role
-        Role role = new Role();
+        
+        Role role =(roleRepository.findByLibele(request.getRole().getLibele()).orElseThrow(
+        ));
         role.setLibele(TypeRole.ADMIN);
+        this.roleRepository.save(role);
+
+      //implementer la sousscription TRIAL
+      Subscription subscriptionx = Subscription.builder()
+                                  .amount(15000)
+                                  .created(LocalDateTime.now())
+                                  .endDate(LocalDateTime.now().plusWeeks(1))
+                                  .status(StatutAbonnement.TRIAL)
+                                  .active(true)
+                                  .build();
+                                  
+      this.subscriptionRepository.save(subscriptionx);
           
-        //implementer les données l'utilisateur
+       //implementer les données l'utilisateur
         Utilisateur utilisateur  = Utilisateur.builder()
                                   .email(request.getEmail())
                                   .username(request.getUsername())
@@ -102,12 +125,13 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
                                   .role(role)
                                   .commune(communeX)
                                   .active(false)
+                                  .subscription(subscriptionx)
                                   .build();
 
 
-        System.out.println(utilisateur);
+        log.info("Utilisateur "+ utilisateur.getId()+ " "+utilisateur.getUsername());;
         //sauvegarder les informations
-      this.communeRepository.save(utilisateur);
+        this.utilisateurRepository.save(utilisateur);
         //envoyer le code pour activer le compte admin
         this.validationService.createCode(utilisateur, GenderSLC.SIGNUP);
         XXX= ResponseEntity
@@ -135,6 +159,7 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
         Utilisateur subscriberActivatedorNot = this.utilisateurRepository.findByEmail(codex.getUtilisateur().getEmail()).
                 orElseThrow(() -> new RuntimeException("L'Administrateur n'exite pas "));
         subscriberActivatedorNot.setActive(true);
+        
         this.utilisateurRepository.save(subscriberActivatedorNot);
         
       
@@ -142,7 +167,7 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
                     .status(HttpStatus.GONE)
                     .body(new ResponseDto(200, "LE COMPTE DE "+subscriberActivatedorNot.getRole().getLibele()+" "+ subscriberActivatedorNot.getUsername()+
         " EST ACTIVEE"));
-        this.jwtUtil.disableToken(subscriberActivatedorNot);
+        this.jwtService.disableToken(subscriberActivatedorNot);
   } 
     catch(Exception e){this.reponses= ResponseEntity 
       .status(HttpStatus.BAD_REQUEST)
@@ -192,10 +217,12 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
           Utilisateur subscriberActivated = this.utilisateurRepository.findByEmail(codex.getUtilisateur().getEmail()).
                   orElseThrow(() -> new RuntimeException(codex.getUtilisateur().getRole()+" n'exite pas "));
           
-          tokenx =this.jwtUtil.generateToken(subscriberActivated);
+          tokenx =this.jwtService.generateAndSaveToken(subscriberActivated);
           
-         
-          System.out.println("TOKEN "+ tokenx);
+          //make user connected
+          log.info(subscriberActivated.getId().toString()+" "+subscriberActivated.getUsername()+" connected" );
+          subscriberActivated.setConnected(true);
+          
               }
     
     catch(Exception e){ tokenx= null;}

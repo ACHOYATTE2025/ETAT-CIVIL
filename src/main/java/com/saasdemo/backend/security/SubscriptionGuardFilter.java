@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class SubscriptionGuardFilter extends OncePerRequestFilter {
-    private final SubscriptionRepository subscriptionRepository;
+    private  SubscriptionRepository subscriptionRepository;
 
    
 

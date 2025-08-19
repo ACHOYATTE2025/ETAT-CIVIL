@@ -27,5 +27,10 @@ public class Area {
     @Column(nullable = false, unique = true)
     @NaturalId
     private String nameCommune;
+
+    public void orElse(Area save) {
+      // TODO Auto-generated method stub
+      throw new UnsupportedOperationException("Unimplemented method 'orElse'");
+    }
     
 }

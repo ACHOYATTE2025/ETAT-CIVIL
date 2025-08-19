@@ -16,7 +16,6 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur,Long> {
 
   Optional<Utilisateur> findByEmail(String email);
 
-  Utilisateur findByPassword(String password);
 
   Long countByCommuneId(Long orgId);
 
@@ -27,8 +26,6 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur,Long> {
   //compter le nombre d'admin actif selon la commune
   long countByRoleAndCommuneAndActive(TypeRole role, Area commune, Boolean vrai);
   
-
- 
   
   
 

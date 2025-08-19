@@ -13,6 +13,6 @@ import com.saasdemo.backend.entity.Validation;
 public interface ValidationRepository extends JpaRepository<Validation, Long> {
     Optional<Validation> findByCode(String code);
     Optional<Validation> deleteByCode(String code);
-    Optional<Validation> findById(Long id);
+    Optional<Validation> findById(long id);
     Optional<Validation> findByUtilisateur(Utilisateur utilisateur);
 }

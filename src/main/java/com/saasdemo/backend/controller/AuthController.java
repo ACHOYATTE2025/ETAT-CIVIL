@@ -1,5 +1,7 @@
 package com.saasdemo.backend.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,8 +23,9 @@ import com.saasdemo.backend.dto.ResponseDto;
 import com.saasdemo.backend.dto.SignupRequest;
 import com.saasdemo.backend.dto.SignupResponse;
 import com.saasdemo.backend.dto.SubscriptionDTO;
-import com.saasdemo.backend.dto.UserResponse;
+import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.service.AuthService;
+import com.saasdemo.backend.service.JwtService;
 import com.saasdemo.backend.service.SubscriptionService;
 import com.saasdemo.backend.service.UserService;
 import com.saasdemo.backend.util.JwtUtil;
@@ -36,25 +39,28 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 
-
-
 @Tag(
-  name = " AUTH & CRUD  REST Api for ETAT CIVIL",
-  description="CRUD REST Api in  ETAT CIVIL APP to CREATE,READ,UPDATE,DELETE  details"
+  name = "AUTHENTIFICATION   REST Api for ETAT CIVIL",
+  description="AUTHENTIFICATION REST Api in  ETAT CIVIL APP to CREATE,READ,UPDATE,DELETE  details"
 )
 @RestController
 public class AuthController {
+
+    private final JwtService jwtService;
 private final AuthService authService;
 private final UserService userService;
 private final JwtUtil jwtUtil;
 private final SubscriptionService subscriptionService;
+private final JwtService jService;
 
   public AuthController(AuthService authService,UserService userService, 
-  JwtUtil jwtUtil,SubscriptionService subscriptionService) {
+  JwtUtil jwtUtil,SubscriptionService subscriptionService, JwtService jwtService, JwtService jService) {
     this.authService = authService;
     this.userService = userService;
     this.jwtUtil = jwtUtil;
     this.subscriptionService = subscriptionService;
+    this.jwtService = jwtService;
+    this.jService = jService;
     
   }
 
@@ -156,7 +162,7 @@ public ResponseEntity<ResponseDto> loginAdmin(@Valid @RequestBody LoginAdminRequ
     )
     }
   )
-@PreAuthorize("hasAnyRole('ADMIN','USER')")
+//@PreAuthorize("hasAnyRole('ADMIN','USER')")
 @PostMapping("/activationLogin")
 public SignupResponse loginActivation(@RequestBody ActiveCodeRequest activationLogin) {
       return this.authService.activationLogin(activationLogin);
@@ -172,7 +178,7 @@ public SignupResponse loginActivation(@RequestBody ActiveCodeRequest activationL
 @PreAuthorize("hasAnyRole('USER')")
   @PostMapping("/refreshtoken")
   public  SignupResponse refreshToken(@RequestBody ActiveCodeRequest refreshTokenRequest) {
-       return this.jwtUtil.refreshtoken(refreshTokenRequest);
+       return this.jwtService.refreshtoken(refreshTokenRequest);
        }
 
 
@@ -233,10 +239,10 @@ public SignupResponse loginActivation(@RequestBody ActiveCodeRequest activationL
 
 
 // obtenir l'utilisateur connceté
-@PreAuthorize("hasAnyRole('SUPERADMIN','ADMIN','USER')")
-@GetMapping(path="/currentUser")
-public UserResponse getMethodName() {
-  return this.userService.getCurrentUser();
+@PreAuthorize("hasAnyRole('SUPERADMIN')")
+@GetMapping(path="/allusersConnected")
+public List<Utilisateur> getAllUsersConnectedController() {
+  return this.userService.getAllCurrentUserConnected();
 }
 
 //modifier mot de passe
@@ -271,7 +277,7 @@ public UserResponse getMethodName() {
 @PreAuthorize("hasAnyRole('SUPERADMIN','ADMIN','USER')")
 @PostMapping(path = "/deconnexion")
 public ResponseEntity<?> deconex()  {
-   return this.jwtUtil.deconex();
+   return this.jwtService.deconex();
 }
 
 
@@ -301,5 +307,5 @@ public ResponseEntity<?> createSubscription(@PathVariable Long userId,@RequestBo
 
     return null;
 }
-           
-} 
+          
+}

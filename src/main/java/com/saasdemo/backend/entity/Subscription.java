@@ -1,7 +1,5 @@
 package com.saasdemo.backend.entity;
 
-import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDateTime;
 
 import com.saasdemo.backend.enums.StatutAbonnement;
@@ -12,9 +10,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,23 +33,22 @@ public class Subscription {
 
     @Enumerated(EnumType.STRING) // Pour stocker l'énum en texte
     private StatutAbonnement status; // active, expired, pending,trial
-    private Instant createdAt ;
+
+    private LocalDateTime created ;
     private LocalDateTime endDate;
-    private BigDecimal amount; //en franc cfa
+
+    private double amount; //en franc cfa
 
     @Builder.Default
     private Boolean active=false;
 
+    @NotNull
+    private String usersName;
+
     @OneToOne
     private Area commune;
 
-    @OneToOne
-    @JoinColumn(name = "utilisateurId")
-    private Utilisateur utilisateur;
-
-    
-
-   
+  
 
 
 }

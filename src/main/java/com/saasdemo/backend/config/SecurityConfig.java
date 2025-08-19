@@ -20,14 +20,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.saasdemo.backend.security.JwtAuthenticationFilter;
 import com.saasdemo.backend.security.SubscriptionGuardFilter;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
-@AllArgsConstructor
+@RequiredArgsConstructor
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-private PasswordEncoder passwordEncoder;
+private final PasswordEncoder passwordEncoder;
 private final JwtAuthenticationFilter jwtFilter;
 private final SubscriptionGuardFilter subscriptionGuardFilter;
 

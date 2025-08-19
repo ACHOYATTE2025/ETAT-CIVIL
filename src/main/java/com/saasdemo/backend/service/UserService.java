@@ -1,4 +1,6 @@
 package com.saasdemo.backend.service;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -7,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.dto.CreateUserRequest;
 import com.saasdemo.backend.dto.ResponseDto;
-import com.saasdemo.backend.dto.UserResponse;
 import com.saasdemo.backend.entity.Area;
 import com.saasdemo.backend.entity.Role;
 import com.saasdemo.backend.entity.Utilisateur;
@@ -15,6 +16,7 @@ import com.saasdemo.backend.enums.GenderSLC;
 import com.saasdemo.backend.enums.TypeRole;
 import com.saasdemo.backend.repository.CommuneRepository;
 import com.saasdemo.backend.repository.JwtRepository;
+import com.saasdemo.backend.repository.RoleRepository;
 import com.saasdemo.backend.repository.UtilisateurRepository;
 ;
 
@@ -24,10 +26,13 @@ public class UserService {
   private final UtilisateurRepository utilisateurRepository ;
     private final PasswordEncoder passwordEncoder;
     private final ValidationService validationService;
-    public UserService(JwtRepository jwtRepository, UtilisateurRepository utilisateurRepository, CommuneRepository communeRepository, PasswordEncoder passwordEncoder, NotificationService notificationService, ValidationService validationService) {
+    private final RoleRepository roleRepository;
+
+    public UserService(JwtRepository jwtRepository, UtilisateurRepository utilisateurRepository, CommuneRepository communeRepository, PasswordEncoder passwordEncoder, NotificationService notificationService, ValidationService validationService, RoleRepository roleRepository) {
         this.utilisateurRepository = utilisateurRepository;
         this.passwordEncoder = passwordEncoder;
         this.validationService = validationService;
+        this.roleRepository = roleRepository;
       
     }
 
@@ -44,8 +49,11 @@ public class UserService {
         throw new RuntimeException("Your Email must be Correct!!!!!");
        }
         //mise en place du role
-        Role roleUser  = new Role();
+        Role roleUser = roleRepository.findByLibele(admin.getRole().getLibele())
+                .orElseThrow(() -> new RuntimeException("ROLE USER NOT FOUND"));
+
         roleUser.setLibele(TypeRole.USER);
+        this.roleRepository.save(roleUser);
 
         // Créer un nouvel utilisateur dans la même organisation
         Utilisateur newUser = Utilisateur.builder()
@@ -74,18 +82,9 @@ public class UserService {
 
 
 // connaitre l'utilisateur connecté
-    public UserResponse getCurrentUser() {
-      Utilisateur user = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-      if(user==null){throw new RuntimeException("NOBODY CONNECTED");}
-      return UserResponse.builder()
-            .id(user.getId())
-            .fullName(user.getUsername())
-            .email(user.getEmail())
-            .role(user.getRole())
-            .communeName(user.getCommune().getNameCommune())
-            .build();
-    }
-
-
+    public List<Utilisateur> getAllCurrentUserConnected() {
+        List<TypeRole> roles = List.of(TypeRole.ADMIN, TypeRole.USER);
+        List<Utilisateur> listOfConnected = this.utilisateurRepository.findAll();
+      return listOfConnected;
+}
 }
