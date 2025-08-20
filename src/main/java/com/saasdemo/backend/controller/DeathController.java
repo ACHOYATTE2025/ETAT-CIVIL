@@ -2,7 +2,6 @@ package com.saasdemo.backend.controller;
 
 import java.util.stream.Stream;
 
-import com.saasdemo.backend.dto.DeathdtoResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.saasdemo.backend.dto.DeathDtoRequest;
-import com.saasdemo.backend.repository.DeathRepository;
+import com.saasdemo.backend.dto.DeathdtoResponse;
 import com.saasdemo.backend.service.DeathService;
 
 import jakarta.validation.Valid;
@@ -24,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 public class DeathController {
-  private final DeathRepository certificatDecesRepository;
   private final DeathService deathService;
 
 

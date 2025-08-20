@@ -1,8 +1,9 @@
 package com.saasdemo.backend.entity;
 
-import com.saasdemo.backend.enums.TypeRole;
+import java.time.Instant;
 
-import jakarta.persistence.Column;
+import com.saasdemo.backend.enums.TypeOperation;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,27 +11,33 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
-@Table(name = "role")
-public class Role {
+@Table(name = "operationsaving")
+public class OperationsSaving {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+  
+  @NotNull
+  private String name;
+
+  @NotNull
+  private String email;
 
  
-  @Column(unique = true,nullable = false)
-  @Enumerated(EnumType.STRING)
-  private TypeRole libele;
+  @Enumerated(value = EnumType.STRING)
+  private TypeOperation operationNature;
 
-
-    
+  @NotNull
+  private Instant operationDate;
 }

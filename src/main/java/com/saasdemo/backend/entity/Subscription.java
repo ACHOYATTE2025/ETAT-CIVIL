@@ -10,6 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -45,7 +46,14 @@ public class Subscription {
     @NotNull
     private String usersName;
 
+    @NotNull
+    private String email;
+
+
     @OneToOne
+    private Role role;
+
+    @ManyToOne
     private Area commune;
 
   

@@ -3,7 +3,6 @@ package com.saasdemo.backend.entity;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.hibernate.annotations.NaturalId;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -44,7 +43,6 @@ public class Utilisateur extends BaseEntity implements UserDetails {
 
     @Column(nullable = false, unique = true)
     @Valid
-    @NaturalId
     private String email;
 
     @Column(nullable = false)

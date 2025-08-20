@@ -19,14 +19,17 @@ import com.saasdemo.backend.dto.ResponseDto;
 import com.saasdemo.backend.dto.SignupRequest;
 import com.saasdemo.backend.dto.SignupResponse;
 import com.saasdemo.backend.entity.Area;
+import com.saasdemo.backend.entity.OperationsSaving;
 import com.saasdemo.backend.entity.Role;
 import com.saasdemo.backend.entity.Subscription;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.entity.Validation;
 import com.saasdemo.backend.enums.GenderSLC;
 import com.saasdemo.backend.enums.StatutAbonnement;
+import com.saasdemo.backend.enums.TypeOperation;
 import com.saasdemo.backend.enums.TypeRole;
 import com.saasdemo.backend.repository.CommuneRepository;
+import com.saasdemo.backend.repository.OperationSavingRepository;
 import com.saasdemo.backend.repository.RoleRepository;
 import com.saasdemo.backend.repository.SubscriptionRepository;
 import com.saasdemo.backend.repository.UtilisateurRepository;
@@ -54,6 +57,7 @@ public class AuthService {
   private final AuthenticationManager authenticationManager;
   private final SubscriptionRepository subscriptionRepository;
   private final RoleRepository roleRepository;
+  private final OperationSavingRepository OpSaving;
 
  
   
@@ -62,7 +66,7 @@ public class AuthService {
   //Instancier 
   public AuthService(CommuneRepository communeRepository,PasswordEncoder passwordEncoder,JwtUtil jwtUtil,
   ValidationService validationService,UtilisateurRepository utilisateurRepository,UtilisateurService utilisateurService,
-   AuthenticationManager authenticationManager,SubscriptionRepository subscriptionRepository,RoleRepository roleRepository, JwtService jwtService){
+   AuthenticationManager authenticationManager,SubscriptionRepository subscriptionRepository,RoleRepository roleRepository, JwtService jwtService, OperationSavingRepository opSaving){
     this.communeRepository=communeRepository;
     this.passwordEncoder =passwordEncoder;
     this.jwtUtil =jwtUtil;
@@ -73,6 +77,8 @@ public class AuthService {
     this.subscriptionRepository = subscriptionRepository;
     this.roleRepository = roleRepository;
     this.jwtService = jwtService;
+    this.OpSaving = opSaving;
+    
    
     
   
@@ -87,9 +93,9 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
     ResponseEntity<ResponseDto> XXX=null;
     
     //chercher la commune
-    Optional<Area> commune =  communeRepository.findByNameCommune(request.getNamecommune());
-    
-    if(commune == null ){
+    Optional<Area> commune =   communeRepository.findByNameCommune(request.getNamecommune());
+    log.info("commune :"+commune);
+    if(commune.isEmpty() ){
           
       Area area= Area.builder().nameCommune("Mairie_"+request.getNamecommune()).build();
       Area communeX = this.communeRepository.save(area);
@@ -101,21 +107,25 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
 
       //paramettrer role
         
-        Role role =(roleRepository.findByLibele(request.getRole().getLibele()).orElseThrow(
-        ));
+        Role role =new Role();
         role.setLibele(TypeRole.ADMIN);
         this.roleRepository.save(role);
 
       //implementer la sousscription TRIAL
       Subscription subscriptionx = Subscription.builder()
-                                  .amount(15000)
+                                  .usersName(request.getUsername())
+                                  .amount(0)
                                   .created(LocalDateTime.now())
                                   .endDate(LocalDateTime.now().plusWeeks(1))
                                   .status(StatutAbonnement.TRIAL)
                                   .active(true)
+                                  .commune(area)
+                                  .role(role)
+                                  .email(request.getEmail())
                                   .build();
                                   
       this.subscriptionRepository.save(subscriptionx);
+
           
        //implementer les données l'utilisateur
         Utilisateur utilisateur  = Utilisateur.builder()
@@ -127,6 +137,15 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
                                   .active(false)
                                   .subscription(subscriptionx)
                                   .build();
+
+        //save operation of registerAdmin in OPeration saving
+        OperationsSaving savingx  = OperationsSaving.builder()
+                                    .name(utilisateur.getUsername())
+                                    .email(utilisateur.getEmail())
+                                    .operationNature(TypeOperation.ENREGISTER_UN_ADMIN)
+                                    .operationDate(Instant.now())
+                                    .build();
+        this.OpSaving.save(savingx);
 
 
         log.info("Utilisateur "+ utilisateur.getId()+ " "+utilisateur.getUsername());;
@@ -141,7 +160,8 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
        
         }else{ XXX= ResponseEntity
           .status(HttpStatus.BAD_REQUEST)
-          .body(new ResponseDto(406, " VOUS ÊTES DEJA INSCRIT"));}
+          .body(new ResponseDto(406, " VOUS ÊTES DEJA INSCRIT"));
+          log.info("request :"+request);}
       
         return XXX;
         
@@ -164,7 +184,7 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
         
       
         this.reponses = ResponseEntity
-                    .status(HttpStatus.GONE)
+                    .status(HttpStatus.OK)
                     .body(new ResponseDto(200, "LE COMPTE DE "+subscriberActivatedorNot.getRole().getLibele()+" "+ subscriberActivatedorNot.getUsername()+
         " EST ACTIVEE"));
         this.jwtService.disableToken(subscriberActivatedorNot);
@@ -191,8 +211,10 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
                        TenantContext.setCurrentTenantId(ux.getCommune().getId());
                        System.out.println("TEANT ID :"+TenantContext.getCurrentTenantId());
                       this.validationService.createCode(ux,GenderSLC.LOGIN);
+                      ux.setConnected(true);
+                      this.utilisateurRepository.save(ux);
                       return (ResponseEntity<ResponseDto>) (retour =ResponseEntity
-                      .status(HttpStatus.GONE)
+                      .status(HttpStatus.OK)
                       .body(new ResponseDto(200, " CODE VALIDATION ENVOYE")));
                       
                       }
@@ -293,7 +315,7 @@ public void newpassword(NewPasswordRequest nouveauMotDePasse)  {
   }
 
  //desactiver souscripteur USER
-  public ResponseEntity<?> deletesouscripteur(ReactivedCompteRequest emailSouscripteur) throws Exception {
+  public ResponseEntity<ResponseDto> desactivatesubscriberService(ReactivedCompteRequest emailSouscripteur) throws Exception {
     String email = emailSouscripteur.getEmail();
     Utilisateur souscris = this.utilisateurRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Subscriber not found"));
 
@@ -303,15 +325,19 @@ public void newpassword(NewPasswordRequest nouveauMotDePasse)  {
         {
           souscris.setActive(false);
           Utilisateur accord = this.utilisateurRepository.save(souscris);
-          this.reponses = ResponseEntity.ok().body(accord.getRole().getLibele()+" " + accord.getUsername() +" A ETE DESACTIVE");
+          this.reponses = ResponseEntity
+                          .status(HttpStatus.OK)
+                          .body(new ResponseDto( 200, accord.getRole().getLibele()+" " + accord.getUsername() +" A ETE DESACTIVE"));
         }
         else if(!souscris.getActive() && souscris.getRole().equals("USER" )){
           this.reponses =ResponseEntity.badRequest().body(souscris.getRole().getLibele()+ " "+souscris.getUsername()+" EST DEJA DESACTIVE");
         }
-        else{this.reponses =  ResponseEntity.badRequest().body(" IMPOSSIBLE DE DESACTIVER" );}
+        else{this.reponses =  ResponseEntity
+          .status(HttpStatus.BAD_GATEWAY)
+          .body(new ResponseDto( 400," IMPOSSIBLE DE DESACTIVER" ));}
         
         
-           return this.reponses;}
+        return this.reponses;}
 
 }
 

@@ -1,6 +1,7 @@
 package com.saasdemo.backend.controller;
 
-import com.saasdemo.backend.dto.BirthDtoResponse;
+import java.util.stream.Stream;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,20 +14,23 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.saasdemo.backend.dto.BirthDtoRequest;
-import com.saasdemo.backend.repository.BirthRepository;
+import com.saasdemo.backend.dto.BirthDtoResponse;
+import com.saasdemo.backend.dto.ResponseDto;
 import com.saasdemo.backend.service.BirthService;
 
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-
-import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 
 
 @RestController
-@AllArgsConstructor
+@Slf4j
 public class BirthController {
-  private final BirthRepository extraitNaissanceRepository;
   private final BirthService birthService;
+
+
+  public BirthController( BirthService birthService){
+    this.birthService = birthService;
+  }
 
 
   
@@ -39,16 +43,18 @@ public class BirthController {
 //Creer un Extrait de Naissance
 
 @PostMapping(path="/BirthCertificateCreation")
-private  ResponseEntity<?>  BirthCertificateCreation(@Valid @RequestBody BirthDtoRequest extrait ){
-  return this.birthService.BirthCreate(extrait);
+public  ResponseEntity<ResponseDto>  BirthCertificateCreation(@Valid @RequestBody BirthDtoRequest extrait ){
+  ResponseEntity<ResponseDto> altris=this.birthService.BirthCreate(extrait);
+  log.info("birthcreation :"+altris);
+  return altris;
   }
-    
+
 
 
 
 //Modifier un Extrait de naissance
 @PutMapping(path="/UpdateBirthCertificate/{id}")
-private ResponseEntity<?> UpdateBirthCertificate(@RequestBody BirthDtoRequest extrait, @PathVariable Long id){
+private ResponseEntity<ResponseDto> UpdateBirthCertificate(@RequestBody BirthDtoRequest extrait, @PathVariable Long id){
   return this.birthService.UpdateBirth(extrait,id);
 }
 
@@ -61,7 +67,7 @@ Stream <BirthDtoResponse> ReadBirthCertificate(@RequestParam(required = false)  
 //suprimmer un extrait de naissance
 @DeleteMapping(path="/BirthCertificateDeletion")
 @PreAuthorize("hasRole('ADMIN')")
-private String BirthCertificateDeletion(){
+private ResponseEntity<ResponseDto> BirthCertificateDeletion(){
    return this.birthService.Birthdeletion();
 }
 

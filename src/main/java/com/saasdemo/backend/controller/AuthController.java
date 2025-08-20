@@ -27,7 +27,7 @@ import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.service.AuthService;
 import com.saasdemo.backend.service.JwtService;
 import com.saasdemo.backend.service.SubscriptionService;
-import com.saasdemo.backend.service.UserService;
+import com.saasdemo.backend.service.UtilisateurService;
 import com.saasdemo.backend.util.JwtUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,17 +46,17 @@ import jakarta.validation.Valid;
 @RestController
 public class AuthController {
 
-    private final JwtService jwtService;
+private final JwtService jwtService;
 private final AuthService authService;
-private final UserService userService;
+private final UtilisateurService utilisateurService;
 private final JwtUtil jwtUtil;
 private final SubscriptionService subscriptionService;
 private final JwtService jService;
 
-  public AuthController(AuthService authService,UserService userService, 
+  public AuthController(AuthService authService,UtilisateurService utilisateurService, 
   JwtUtil jwtUtil,SubscriptionService subscriptionService, JwtService jwtService, JwtService jService) {
     this.authService = authService;
-    this.userService = userService;
+    this.utilisateurService = utilisateurService;
     this.jwtUtil = jwtUtil;
     this.subscriptionService = subscriptionService;
     this.jwtService = jwtService;
@@ -230,19 +230,19 @@ public SignupResponse loginActivation(@RequestBody ActiveCodeRequest activationL
     )
     }
   )
- @PostMapping("/userCreation")
+    @PostMapping("/userCreation")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseDto> createUser(@Validated @RequestBody CreateUserRequest request) {
-       return this.userService.createUser(request);
+       return this.utilisateurService.createUser(request);
        
     }
 
 
 // obtenir l'utilisateur connceté
-@PreAuthorize("hasAnyRole('SUPERADMIN')")
+@PreAuthorize("hasRole('SUPERADMIN')")
 @GetMapping(path="/allusersConnected")
 public List<Utilisateur> getAllUsersConnectedController() {
-  return this.userService.getAllCurrentUserConnected();
+  return this.utilisateurService.getAllCurrentUserConnected();
 }
 
 //modifier mot de passe
@@ -288,8 +288,8 @@ public ResponseEntity<?> deconex()  {
   )
 @PostMapping(path="/userDeactivation")
 @PreAuthorize("hasRole('ADMIN')")
-public ResponseEntity<?>   deletesouscripteur(@RequestBody ReactivedCompteRequest emailSouscripteur) throws Exception {
-           return this.authService.deletesouscripteur( emailSouscripteur);}
+public ResponseEntity<ResponseDto>   desactivateSubscriber(@RequestBody ReactivedCompteRequest emailSouscripteur) throws Exception {
+           return this.authService.desactivatesubscriberService( emailSouscripteur);}
 
     
 

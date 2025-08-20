@@ -1,10 +1,12 @@
 package com.saasdemo.backend.service;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -12,11 +14,15 @@ import org.springframework.stereotype.Service;
 import com.saasdemo.backend.config.MagicID;
 import com.saasdemo.backend.dto.BirthDtoRequest;
 import com.saasdemo.backend.dto.BirthDtoResponse;
+import com.saasdemo.backend.dto.ResponseDto;
 import com.saasdemo.backend.entity.Birth;
+import com.saasdemo.backend.entity.OperationsSaving;
 import com.saasdemo.backend.entity.Registre;
 import com.saasdemo.backend.entity.Utilisateur;
+import com.saasdemo.backend.enums.TypeOperation;
 import com.saasdemo.backend.mapper.BirthDtoMapper;
 import com.saasdemo.backend.repository.BirthRepository;
+import com.saasdemo.backend.repository.OperationSavingRepository;
 import com.saasdemo.backend.repository.RegistreRepository;
 import com.saasdemo.backend.security.TenantContext;
 
@@ -32,6 +38,7 @@ public class BirthService {
   private final BirthRepository extraitNaissanceRepository;
   private final RegistreRepository registreRepository;
   private final BirthDtoMapper birthDtoMapper;
+  private final OperationSavingRepository OpSaving;
   
  
 
@@ -46,8 +53,8 @@ public class BirthService {
     
   //CREER UN EXTRAIT DE NAISSANCE
 
-  public ResponseEntity<?> BirthCreate(BirthDtoRequest extrait) {
-     ResponseEntity XXX;
+  public ResponseEntity<ResponseDto> BirthCreate(BirthDtoRequest extrait) {
+     ResponseEntity<ResponseDto> XXX;
      Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
      //configurer le tenant
@@ -56,7 +63,7 @@ public class BirthService {
      List<Birth> Xtrait = this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(extrait.getNumeroExtrait(),usex.getCommune());
    
    if(Xtrait.isEmpty())
-      {  
+      {
         // configurer le registre
           Registre regis = Registre.builder()
                           .registreAnnee(String.valueOf(LocalDate.now().getYear()))
@@ -69,7 +76,7 @@ public class BirthService {
                                     .commune(usex.getCommune())
                                     .dateDelivrance(extrait.getDateDelivrance())
                                     .dateNaissance(extrait.getDateNaissance())
-                                    .registre(regis)                                   
+                                    .registre(regis)
                                     .deces(extrait.getDeces())
                                     .dissolutionMariage(extrait.getDissolutionMariage())
                                     .domicileMere(extrait.getDomicileMere())
@@ -90,9 +97,24 @@ public class BirthService {
                                     .utilisateur(usex)
                                     .build();
             
-          this.extraitNaissanceRepository.save(extros);
-            XXX =  ResponseEntity.ok().body("EXTRAIT DE NAISSANCE "+extrait.getNumeroExtrait()+" EST CREE");}
-    else{  XXX = ResponseEntity.badRequest().body("EXTRAIT DE NAISSANCE EST DEJA ENREGISTRE");
+         Birth altros = this.extraitNaissanceRepository.save(extros);
+         log.info("birth :"+altros);
+
+             //save operation of register USER in OPeration saving
+              OperationsSaving savingx  = OperationsSaving.builder()
+                                          .name(usex.getUsername())
+                                          .email(usex.getEmail())
+                                          .operationNature(TypeOperation.CREER_UN_EXTRAIT_NAISSANCE)
+                                          .operationDate(Instant.now())
+                                          .build();
+              this.OpSaving.save(savingx);
+
+            XXX =  ResponseEntity
+                  .status(HttpStatus.OK)
+                  .body(new ResponseDto(200, "EXTRAIT DE NAISSANCE "+extrait.getNumeroExtrait()+" EST CREE"));}
+    else{  XXX = ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body( new ResponseDto(406, "EXTRAIT DE NAISSANCE EST DEJA ENREGISTRE"));
      }
      
     return XXX;}
@@ -104,7 +126,7 @@ public class BirthService {
 
 
 //MODIFIER UN EXTRAIT
-  public ResponseEntity<?> UpdateBirth(BirthDtoRequest extrait, Long idx) {
+  public ResponseEntity<ResponseDto> UpdateBirth(BirthDtoRequest extrait, Long idx) {
     ResponseEntity TTT =null;
     Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     Birth Xtrait = (Birth) this.extraitNaissanceRepository.findByIdAndCommune(idx,usex.getCommune());
@@ -139,7 +161,19 @@ public class BirthService {
       Xtrait.setProfessionMere(extrait.getProfessionMere());
       Xtrait.setProfessionPere(extrait.getProfessionPere());
       this.extraitNaissanceRepository.save(Xtrait);
-      TTT=ResponseEntity.ok().body("EXTRAIT "+ Xtrait.getNumeroExtrait()+ " A ETE MODIFIEE AVEC SUCCES");
+
+         //save operation of register USER in OPeration saving
+        OperationsSaving savingx  = OperationsSaving.builder()
+                                    .name(usex.getUsername())
+                                    .email(usex.getEmail())
+                                    .operationNature(TypeOperation.MODIFIER_UN_EXTRAIT_NAISSANCE)
+                                    .operationDate(Instant.now())
+                                    .build();
+        this.OpSaving.save(savingx);
+
+      TTT=ResponseEntity
+      .status(HttpStatus.OK)
+      .body( new ResponseDto(200, "EXTRAIT "+ Xtrait.getNumeroExtrait()+ " A ETE MODIFIEE AVEC SUCCES"));
   }
     return TTT;}
   
@@ -169,18 +203,33 @@ public Stream<BirthDtoResponse> ReadBirth(String num) {
 
 //suprimmer un extrait
 @Transactional
-public String Birthdeletion() {
-  Birth DEXA;
+public ResponseEntity<ResponseDto> Birthdeletion() {
+  Birth DEXA=null;
   Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   TenantContext.setCurrentTenantId(usex.getId());
   try{
     Birth Xtrait = this.extraitNaissanceRepository.findByIdAndCommune( MagicID.magic, usex.getCommune());
     DEXA=Xtrait;
   }
-   catch(Exception e){throw new RuntimeException("SUPPRESION IMPOSSIBLE-EXTRAIT DE NAISSANCE INTROUVABLE");}
+   catch(Exception e)
+      { ResponseEntity
+        .status(HttpStatus.BAD_GATEWAY)
+        .body(new ResponseDto(406,  "SUPPRESION IMPOSSIBLE-EXTRAIT DE NAISSANCE INTROUVABLE"));}
      log.info("XTRAIT :"+DEXA);
      this.extraitNaissanceRepository.deleteByIdAndCommune(MagicID.magic, usex.getCommune());
-     return "EXTRAIT DE NAISSANCE N° "+DEXA.getNumeroExtrait()+" A ETE SUPPRIME" ;}
+
+        //save operation of register USER in OPeration saving
+        OperationsSaving savingx  = OperationsSaving.builder()
+                                    .name(usex.getUsername())
+                                    .email(usex.getEmail())
+                                    .operationNature(TypeOperation.SUPPRIMER_UN_EXTRAIT_NAISSANCE)
+                                    .operationDate(Instant.now())
+                                    .build();
+        this.OpSaving.save(savingx);
+     return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(new ResponseDto(406, "EXTRAIT DE NAISSANCE N° "+DEXA.getNumeroExtrait()+" A ETE SUPPRIME" ));
+     }
 }
 
    

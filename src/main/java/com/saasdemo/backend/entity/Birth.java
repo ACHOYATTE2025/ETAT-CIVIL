@@ -27,9 +27,6 @@ public class Birth extends BaseEntity{
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-
-
-
   private  String numeroExtrait;
   private  String lieuDelivrance;
   private  Date dateDelivrance;
@@ -71,8 +68,8 @@ private Utilisateur utilisateur;
 
 //données extrait
  @ManyToOne
-@JoinColumn(name = "registre_id")
-private Registre registre;
+ @JoinColumn(name = "registre_id")
+ private Registre registre;
 
 
 }

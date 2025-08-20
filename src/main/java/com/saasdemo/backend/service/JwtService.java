@@ -18,6 +18,7 @@ import com.saasdemo.backend.entity.Jwt;
 import com.saasdemo.backend.entity.RefreshToken;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.repository.JwtRepository;
+import com.saasdemo.backend.repository.UtilisateurRepository;
 import com.saasdemo.backend.util.JwtUtil;
 
 import jakarta.transaction.Transactional;
@@ -30,8 +31,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JwtService {
 
+    private final UtilisateurRepository utilisateurRepository;
+
     private final JwtRepository jwtRepository;
     private final JwtUtil jwtUtil;
+    
+
+
 
     public SignupResponse generateAndSaveToken(Utilisateur utilisateur) {
         // désactiver anciens tokens
@@ -101,6 +107,7 @@ public class JwtService {
             if (!jwt.getDesactive() && !jwt.getExpiration()) {
                 disableToken(user);
                 user.setConnected(false);
+                this.utilisateurRepository.save(user);
 
                 return ResponseEntity
                         .status(HttpStatus.ACCEPTED)

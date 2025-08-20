@@ -103,6 +103,9 @@ Subscription subscriptionx = this.subscriptionRepository.findByUsersName("ACHO")
                         .endDate(LocalDateTime.now().plusYears(100))
                         .status(StatutAbonnement.Active)
                         .active(true)
+                        .commune(communex)
+                        .role(rolex)
+                        .email("acho.quebec@gmail.com")
                         .build()
         ));
 
