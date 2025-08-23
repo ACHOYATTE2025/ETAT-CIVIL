@@ -2,7 +2,9 @@ package com.saasdemo.backend.controller;
 
 import java.util.stream.Stream;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.saasdemo.backend.dto.BirthDtoRequest;
 import com.saasdemo.backend.dto.BirthDtoResponse;
 import com.saasdemo.backend.dto.ResponseDto;
+import com.saasdemo.backend.entity.Birth;
+import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.service.BirthService;
 
 import jakarta.validation.Valid;
@@ -61,6 +65,22 @@ private ResponseEntity<ResponseDto> UpdateBirthCertificate(@RequestBody BirthDto
 Stream <BirthDtoResponse> ReadBirthCertificate(@RequestParam(required = false)  String num){
   return  this.birthService.ReadBirth(num);
 }
+
+//lire les extraits avec tri ete pagination
+@GetMapping("/ListBirthCertificates")
+public ResponseEntity<?> listBirthCertificates(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "dateNaissance") String sortBy,
+        @RequestParam(defaultValue = "asc") String sortDir) {
+
+    Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    Page<Birth> extraitsPage = this.birthService.getExtraitsByCommune(usex.getCommune(), page, size, sortBy, sortDir);
+
+    return ResponseEntity.ok(extraitsPage);
+}
+
+
 
 //suprimmer un extrait de naissance
 @DeleteMapping(path="/BirthCertificateDeletion")

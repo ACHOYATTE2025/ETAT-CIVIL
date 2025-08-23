@@ -3,6 +3,8 @@ package com.saasdemo.backend.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -26,6 +28,9 @@ public interface BirthRepository extends JpaRepository<Birth,Long> {
   List<Birth> findByEmailAndCommune(String numero, Area commune);
   
   List<Birth> findAllByEmailAndCommune(String email, Area commune);
+
+  //avec pagination
+    Page<Birth> findByCommune(Area commune, org.springframework.data.domain.Pageable pageable);
   
  
 

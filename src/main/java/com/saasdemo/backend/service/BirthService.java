@@ -8,6 +8,10 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Service;
 import com.saasdemo.backend.dto.BirthDtoRequest;
 import com.saasdemo.backend.dto.BirthDtoResponse;
 import com.saasdemo.backend.dto.ResponseDto;
+import com.saasdemo.backend.entity.Area;
 import com.saasdemo.backend.entity.Birth;
 import com.saasdemo.backend.entity.OperationsSaving;
 import com.saasdemo.backend.entity.Registre;
@@ -30,6 +35,7 @@ import com.saasdemo.backend.security.TenantContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 
 
 @Service
@@ -217,6 +223,12 @@ public Stream<BirthDtoResponse> ReadBirth(String num) {
   }
 
 
+  //lire les extraits avec paginations et tri
+  public Page<Birth> getExtraitsByCommune(Area commune, int page, int size, String sortBy, String sortDir) {
+  Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+    Pageable pageable = PageRequest.of(page, size, sort);
+    return extraitNaissanceRepository.findByCommune(commune, pageable);
+}
 
 
 //suprimmer un extrait
@@ -253,6 +265,11 @@ public ResponseEntity<ResponseDto> Birthdeletion() {
             .status(HttpStatus.OK)
             .body(new ResponseDto(406, "EXTRAIT DE NAISSANCE N° "+actos.getNumeroExtrait()+" A ETE SUPPRIME" ));
      }
+
+
+
+
+
 }
 
    
