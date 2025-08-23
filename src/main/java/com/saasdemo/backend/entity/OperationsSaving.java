@@ -10,6 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -38,6 +39,11 @@ public class OperationsSaving {
   @Enumerated(value = EnumType.STRING)
   private TypeOperation operationNature;
 
+  private String NumeroActe;
+
   @NotNull
   private Instant operationDate;
+
+  @ManyToOne
+  private Utilisateur utilisateur;
 }

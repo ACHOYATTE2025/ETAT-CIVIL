@@ -144,6 +144,7 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
                                     .email(utilisateur.getEmail())
                                     .operationNature(TypeOperation.ENREGISTER_UN_ADMIN)
                                     .operationDate(Instant.now())
+                                    .utilisateur(utilisateur)
                                     .build();
         this.OpSaving.save(savingx);
 
@@ -178,9 +179,9 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
 
         Utilisateur subscriberActivatedorNot = this.utilisateurRepository.findByEmail(codex.getUtilisateur().getEmail()).
                 orElseThrow(() -> new RuntimeException("L'Administrateur n'exite pas "));
-        subscriberActivatedorNot.setActive(true);
         
-        this.utilisateurRepository.save(subscriberActivatedorNot);
+                subscriberActivatedorNot.setActive(true);
+                this.utilisateurRepository.save(subscriberActivatedorNot);
         
       
         this.reponses = ResponseEntity
@@ -243,7 +244,9 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
           
           //make user connected
           log.info(subscriberActivated.getId().toString()+" "+subscriberActivated.getUsername()+" connected" );
+          
           subscriberActivated.setConnected(true);
+          this.utilisateurRepository.save(subscriberActivated);
           
               }
     

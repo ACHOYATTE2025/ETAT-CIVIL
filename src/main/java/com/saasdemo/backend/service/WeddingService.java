@@ -137,7 +137,7 @@ public class WeddingService {
     if(notEmpty )
       { Wedding THOR = this.certificatMariageRepository.findByNumeroCertificatMariage(num);
         if(THOR==null){throw new RuntimeException("CERTIFICAT DE MARIAGE INEXISTANT");}
-       MagicID.magic=THOR.getId();
+       //MagicID.magic=THOR.getId();
        return this.certificatMariageRepository.findByNumeroCertificatMariageAndCommune(num,usex.getCommune())
                .stream()
                .map(weddingDtoMapper);}
@@ -156,12 +156,12 @@ public class WeddingService {
   Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   TenantContext.setCurrentTenantId(usex.getId());
   try{
-    Wedding Xtrait = this.certificatMariageRepository.findByIdAndCommune( MagicID.magic, usex.getCommune());
+    Wedding Xtrait = this.certificatMariageRepository.findByEmailAndCommune( MagicID.magic, usex.getCommune());
     DEXA=Xtrait;
   }
    catch(Exception e){throw new RuntimeException("SUPPRESION IMPOSSIBLE-CERTIFICAT DE MARIAGE INTROUVABLE");}
      log.info("XTRAIT :"+DEXA);
-     this.certificatMariageRepository.deleteByIdAndCommune(MagicID.magic, usex.getCommune());
+     this.certificatMariageRepository.deleteByEmailAndCommune(MagicID.magic, usex.getCommune());
      return "CERTIFICAT DE MARIAGE N° "+DEXA.getNumeroCertificatMariage()+" A ETE SUPPRIME" ;
     
   }

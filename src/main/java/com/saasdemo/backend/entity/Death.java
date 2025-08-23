@@ -2,6 +2,8 @@ package com.saasdemo.backend.entity;
 
 import java.sql.Date;
 
+import org.hibernate.annotations.NaturalId;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,14 +28,16 @@ public class Death extends BaseEntity{
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-  Long id;
+  private Long id;
 
  //l'année du registre
   @ManyToOne
   @JoinColumn(name = "registre_id")
   private Registre registre;
 
-  
+  @NaturalId
+  private  String email;
+
   private String numeroCertificat;
   private Date dateRegistre;
   private Date dateDeces;

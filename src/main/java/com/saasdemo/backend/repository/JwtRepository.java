@@ -36,6 +36,9 @@ public interface JwtRepository extends CrudRepository<Jwt, Long> {
 
     Optional<Jwt>  findByUtilisateur(Utilisateur utilisateur);
 
+      Optional<Jwt> findByUtilisateurAndExpirationFalseAndDesactiveFalse(Utilisateur user);
+    
+
 
     
    

@@ -3,6 +3,8 @@ package com.saasdemo.backend.service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.util.Strings;
@@ -11,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.saasdemo.backend.config.MagicID;
 import com.saasdemo.backend.dto.BirthDtoRequest;
 import com.saasdemo.backend.dto.BirthDtoResponse;
 import com.saasdemo.backend.dto.ResponseDto;
@@ -40,7 +41,9 @@ public class BirthService {
   private final BirthDtoMapper birthDtoMapper;
   private final OperationSavingRepository OpSaving;
   
- 
+  private String THOR;
+  private Birth birth;
+  private List<Birth> births;
 
   /*==============================================*/
   /*       Volet extrait de naissance             */
@@ -60,7 +63,7 @@ public class BirthService {
      //configurer le tenant
      TenantContext.setCurrentTenantId(usex.getCommune().getId());
      
-     List<Birth> Xtrait = this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(extrait.getNumeroExtrait(),usex.getCommune());
+     List<Birth> Xtrait = this.extraitNaissanceRepository.findByEmailAndCommune(extrait.getEmail(),usex.getCommune());
    
    if(Xtrait.isEmpty())
       {
@@ -70,6 +73,8 @@ public class BirthService {
                           .build();
           this.registreRepository.save(regis);
 
+          //generation de numero d'extrait securitaire
+          String numerox =UUID.randomUUID().toString();
 
           //enregistrer un extrait
           Birth extros = Birth.builder()
@@ -81,7 +86,7 @@ public class BirthService {
                                     .dissolutionMariage(extrait.getDissolutionMariage())
                                     .domicileMere(extrait.getDomicileMere())
                                     .domicilePere(extrait.getDomicilePere())
-                                    .lieuDelivrance(usex.getCommune().getNameCommune())
+                                    .lieuDelivrance(extrait.getLieuDelivrance())
                                     .lieuNaissance(extrait.getLieuNaissance())
                                     .marie(extrait.getMarie())
                                     .marieAvec(extrait.getMarieAvec())
@@ -91,7 +96,7 @@ public class BirthService {
                                     .nomMere(extrait.getNomMere())
                                     .nomPere(extrait.getNomPere())
                                     .numeroDecisionDM(extrait.getNumeroDecisionDM())
-                                    .numeroExtrait(extrait.getNumeroExtrait()) 
+                                    .numeroExtrait(numerox) 
                                     .professionMere(extrait.getProfessionMere())   
                                     .professionPere(extrait.getProfessionPere()) 
                                     .utilisateur(usex)
@@ -106,12 +111,14 @@ public class BirthService {
                                           .email(usex.getEmail())
                                           .operationNature(TypeOperation.CREER_UN_EXTRAIT_NAISSANCE)
                                           .operationDate(Instant.now())
+                                          .utilisateur(usex)
+                                          .NumeroActe(numerox)
                                           .build();
               this.OpSaving.save(savingx);
 
             XXX =  ResponseEntity
                   .status(HttpStatus.OK)
-                  .body(new ResponseDto(200, "EXTRAIT DE NAISSANCE "+extrait.getNumeroExtrait()+" EST CREE"));}
+                  .body(new ResponseDto(200, "EXTRAIT DE NAISSANCE N° "+extros.getNumeroExtrait()+" EST CREE"));}
     else{  XXX = ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body( new ResponseDto(406, "EXTRAIT DE NAISSANCE EST DEJA ENREGISTRE"));
@@ -126,16 +133,24 @@ public class BirthService {
 
 
 //MODIFIER UN EXTRAIT
-  public ResponseEntity<ResponseDto> UpdateBirth(BirthDtoRequest extrait, Long idx) {
-    ResponseEntity TTT =null;
+  public ResponseEntity<ResponseDto> UpdateBirth(BirthDtoRequest extrait) {
+   
     Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    Birth Xtrait = (Birth) this.extraitNaissanceRepository.findByIdAndCommune(idx,usex.getCommune());
+    Optional<Birth>  optionalXtrait =  this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(birth.getNumeroExtrait(),usex.getCommune());
     
-
+     //configurer le tenant
+     TenantContext.setCurrentTenantId(usex.getCommune().getId());
    
   
-    if(Xtrait==null){TTT = ResponseEntity.badRequest().body("EXTRAIT INCONNU");}
-    else{
+    if(optionalXtrait.isEmpty()){return ResponseEntity
+                          .status(HttpStatus.BAD_REQUEST)
+                          .body(new ResponseDto(406, "EXTRAIT INCONNU"));
+                              }
+     // récupérer l'objet Birth réel
+    Birth Xtrait = optionalXtrait.get();
+
+
+    
      /* Xtrail.setCarnet(extrait.getCarnet());
       Xtrail.setCni1(extrait.getCni1());
       Xtrail.setCni2(extrait.getCni2());*/
@@ -156,7 +171,6 @@ public class BirthService {
       Xtrait.setNomMere(extrait.getNomMere());
       Xtrait.setNomPere(extrait.getNomPere());
       Xtrait.setNumeroDecisionDM(extrait.getNumeroDecisionDM());
-      Xtrait.setNumeroExtrait(extrait.getNumeroExtrait());
       Xtrait.setProfessionMere(extrait.getProfessionMere());
       Xtrait.setProfessionMere(extrait.getProfessionMere());
       Xtrait.setProfessionPere(extrait.getProfessionPere());
@@ -168,19 +182,21 @@ public class BirthService {
                                     .email(usex.getEmail())
                                     .operationNature(TypeOperation.MODIFIER_UN_EXTRAIT_NAISSANCE)
                                     .operationDate(Instant.now())
+                                    .utilisateur(usex)
+                                    .NumeroActe(birth.getNumeroExtrait())
                                     .build();
         this.OpSaving.save(savingx);
 
-      TTT=ResponseEntity
+      return ResponseEntity
       .status(HttpStatus.OK)
       .body( new ResponseDto(200, "EXTRAIT "+ Xtrait.getNumeroExtrait()+ " A ETE MODIFIEE AVEC SUCCES"));
   }
-    return TTT;}
+  
   
 
     
 
-
+  
 // Lire un extrait ou les extraits
 public Stream<BirthDtoResponse> ReadBirth(String num) {
   
@@ -188,15 +204,17 @@ public Stream<BirthDtoResponse> ReadBirth(String num) {
   Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   
   if(notEmpty)
-      { Birth THOR = this.extraitNaissanceRepository.findByNumeroExtrait(num);
-        if(THOR==null){throw new RuntimeException("EXTRAIT DE NAISSANCE INEXISTANT");}
-       MagicID.magic=THOR.getId();
+      { birth = this.extraitNaissanceRepository.findByNumeroExtrait(num);
+        if(birth==null){throw new RuntimeException("EXTRAIT DE NAISSANCE INEXISTANT");}
+     
        return this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(num,usex.getCommune())
-               .stream()
-               .map(birthDtoMapper);}
-    return this.extraitNaissanceRepository.findAllByCommune(usex.getCommune())
-            .stream()
-            .map(birthDtoMapper);}
+              .stream()
+              .map(birthDtoMapper);}
+        births = (List<Birth>) this.extraitNaissanceRepository.findAllByCommune(usex.getCommune());
+        if(births.isEmpty()){throw new RuntimeException( "AUCUN EXTRAIT DISPONIBLE") ; }
+  return births.stream().map(birthDtoMapper);
+          
+  }
 
 
 
@@ -204,19 +222,17 @@ public Stream<BirthDtoResponse> ReadBirth(String num) {
 //suprimmer un extrait
 @Transactional
 public ResponseEntity<ResponseDto> Birthdeletion() {
-  Birth DEXA=null;
+  List<Birth> DEXA=null;
   Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   TenantContext.setCurrentTenantId(usex.getId());
-  try{
-    Birth Xtrait = this.extraitNaissanceRepository.findByIdAndCommune( MagicID.magic, usex.getCommune());
-    DEXA=Xtrait;
-  }
-   catch(Exception e)
-      { ResponseEntity
-        .status(HttpStatus.BAD_GATEWAY)
-        .body(new ResponseDto(406,  "SUPPRESION IMPOSSIBLE-EXTRAIT DE NAISSANCE INTROUVABLE"));}
+  
+     if(birth== null){throw new RuntimeException( "SUPPRESSION IMPOSSIBLE") ; }
+    List<Birth> births =  this.extraitNaissanceRepository.findByEmailAndCommune( birth.getEmail(), usex.getCommune());
+    DEXA=births;
+      if(births== null){throw new RuntimeException( "SUPPRESSION IMPOSSIBLE") ; }
+ 
      log.info("XTRAIT :"+DEXA);
-     this.extraitNaissanceRepository.deleteByIdAndCommune(MagicID.magic, usex.getCommune());
+     
 
         //save operation of register USER in OPeration saving
         OperationsSaving savingx  = OperationsSaving.builder()
@@ -224,11 +240,18 @@ public ResponseEntity<ResponseDto> Birthdeletion() {
                                     .email(usex.getEmail())
                                     .operationNature(TypeOperation.SUPPRIMER_UN_EXTRAIT_NAISSANCE)
                                     .operationDate(Instant.now())
+                                    .utilisateur(usex)
+                                    .NumeroActe(birth.getNumeroExtrait())
                                     .build();
         this.OpSaving.save(savingx);
+
+        //delete an birth document
+        this.extraitNaissanceRepository.deleteByEmailAndCommune(birth.getEmail(), usex.getCommune());
+      Birth actos = birth;
+      birth =null;
      return ResponseEntity
             .status(HttpStatus.OK)
-            .body(new ResponseDto(406, "EXTRAIT DE NAISSANCE N° "+DEXA.getNumeroExtrait()+" A ETE SUPPRIME" ));
+            .body(new ResponseDto(406, "EXTRAIT DE NAISSANCE N° "+actos.getNumeroExtrait()+" A ETE SUPPRIME" ));
      }
 }
 

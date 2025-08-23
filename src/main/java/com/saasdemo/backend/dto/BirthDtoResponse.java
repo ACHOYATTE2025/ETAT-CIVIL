@@ -1,39 +1,43 @@
 package com.saasdemo.backend.dto;
 
-import java.util.Date;
+import java.sql.Date;
 
-public record BirthDtoResponse(
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class BirthDtoResponse {
+
+  private String NumeroExtrait;
+  private  String lieuDelivrance;
+  private  Date dateDelivrance;
 
 
+//information naissance
+  private String nomComplet;
+  private String lieuNaissance;
+  private Date dateNaissance;
+  
 
+//information Pere
+  private String nomPere;
+  private String professionPere;
+  private String domicilePere;
+  private String nationalitePere;
 
-          String lieuDelivrance,
-          Date dateDelivrance,
+//information Mere
+  private String nomMere;
+  private String professionMere;
+  private String domicileMere;
+  private String nationaliteMere;
 
-          String numeroExtrait,
-
-    //information naissance
-          String nomComplet,
-          Date dateNaissance,
-          String lieuNaissance,
-
-    //information Pere
-          String nomPere,
-          String professionPere,
-          String domicilePere,
-          String nationalitePere,
-
-    //information Mere
-          String nomMere,
-          String professionMere,
-          String domicileMere,
-          String nationaliteMere,
-
-        //information sur LES MENTIONS
-          String marie,
-          String marieAvec,
-          String numeroDecisionDM,
-          Date dissolutionMariage,
-          Date deces
-) {
+  //information sur LES MENTIONS
+  private String marie;
+  private String marieAvec;
+  private String numeroDecisionDM;
+  private Date dissolutionMariage;
+  private Date deces;
+  
+    
 }

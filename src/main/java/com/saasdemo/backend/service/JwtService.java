@@ -18,6 +18,7 @@ import com.saasdemo.backend.entity.Jwt;
 import com.saasdemo.backend.entity.RefreshToken;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.repository.JwtRepository;
+import com.saasdemo.backend.repository.RefreshTokenRepository;
 import com.saasdemo.backend.repository.UtilisateurRepository;
 import com.saasdemo.backend.util.JwtUtil;
 
@@ -32,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtService {
 
     private final UtilisateurRepository utilisateurRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     private final JwtRepository jwtRepository;
     private final JwtUtil jwtUtil;
@@ -51,7 +53,7 @@ public class JwtService {
                 .valeur(UUID.randomUUID().toString())
                 .expire(false)
                 .creation(Instant.now())
-                .expiration(Instant.now().plusMillis(30 * 60 * 1000))
+                .expiration(Instant.now().plusMillis( 36000000))
                 .build();
 
         // save en DB
@@ -89,28 +91,39 @@ public class JwtService {
 
     //production de refresh Token
      public SignupResponse refreshtoken(ActiveCodeRequest refreshTokenRequest) {
-        final Jwt jwt= this.jwtRepository.findByRefreshToken(refreshTokenRequest.getCode()) .orElseThrow(()-> new RuntimeException("Token Invalid")); 
-        if(jwt.getRefreshToken().isExpire() || jwt.getRefreshToken().getExpiration().isBefore(Instant.now()))
-        { throw new RuntimeException("Token Invalid "); };
-        SignupResponse tokens=  this.generateAndSaveToken(jwt.getUtilisateur());
-          return tokens; }
+        final Jwt jwt= this.jwtRepository.findByRefreshToken(refreshTokenRequest.getCode())
+        .orElseThrow(()-> new RuntimeException("REFRESH-TOKEN Invalid"));
 
-      //deconnexion d'un User ou Admin 
+        if(jwt.getRefreshToken().isExpire() || jwt.getRefreshToken().getExpiration().isBefore(Instant.now()))
+        { throw new RuntimeException("REFRESH-TOKEN EXPIRED "); };
+
+        RefreshToken refresh= this.refreshTokenRepository.findByValeur(refreshTokenRequest.getCode())
+        .orElseThrow(()-> new RuntimeException("REFRESH-TOKEN INCONU"));
+        
+        SignupResponse tokens=  this.generateAndSaveToken(jwt.getUtilisateur());
+        refresh.setExpire(true);
+        this.refreshTokenRepository.save(refresh);
+        
+        return tokens; }
+     
+//deconnexion d'un User ou Admin 
      public ResponseEntity<ResponseDto> deconex() {
     try {
-        Utilisateur user = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<Jwt> jwtOpt = jwtRepository.findByUtilisateur(user);
+        Utilisateur user =  (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<Jwt> jwtOpt = jwtRepository.findByUtilisateurAndExpirationFalseAndDesactiveFalse(user);
 
         if (jwtOpt.isPresent()) {
             Jwt jwt = jwtOpt.get();
 
             if (!jwt.getDesactive() && !jwt.getExpiration()) {
                 disableToken(user);
+                jwt.getRefreshToken().setExpire(true);
+                refreshTokenRepository.save(jwt.getRefreshToken());
                 user.setConnected(false);
                 this.utilisateurRepository.save(user);
 
                 return ResponseEntity
-                        .status(HttpStatus.ACCEPTED)
+                        .status(HttpStatus.OK)
                         .body(new ResponseDto(200, user.getUsername() + " EST DECONNECTE"));
             } else {
                 return ResponseEntity
@@ -126,7 +139,7 @@ public class JwtService {
         log.error("Erreur lors de la déconnexion : {}", e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ResponseDto(500, "Erreur serveur"));
+                .body(new ResponseDto(500, e.getMessage()));
     }
 }
 

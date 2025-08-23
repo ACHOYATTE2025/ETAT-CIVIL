@@ -3,6 +3,8 @@ package com.saasdemo.backend.entity;
 import java.sql.Date;
 import java.time.LocalDate;
 
+import org.hibernate.annotations.NaturalId;
+
 import com.saasdemo.backend.enums.RegimeMariage;
 
 import jakarta.persistence.Entity;
@@ -31,9 +33,12 @@ public class Wedding extends BaseEntity{
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-  Long id;
+  private Long id;
   
   private String numeroCertificatMariage;
+
+   @NaturalId
+  private  String email;
 
   //l'année du registre
   @ManyToOne

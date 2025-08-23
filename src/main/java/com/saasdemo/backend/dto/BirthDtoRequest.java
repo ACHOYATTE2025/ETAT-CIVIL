@@ -6,15 +6,17 @@ import lombok.Data;
 
 @Data
 public class BirthDtoRequest {
-  private  String numeroExtrait;
+  
+  private String email;
   private  String lieuDelivrance;
   private  Date dateDelivrance;
 
 
 //information naissance
   private String nomComplet;
-  private Date dateNaissance;
   private String lieuNaissance;
+  private Date dateNaissance;
+  
 
 //information Pere
   private String nomPere;

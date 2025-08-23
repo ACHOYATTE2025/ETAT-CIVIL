@@ -83,6 +83,7 @@ public class UtilisateurService implements UserDetailsService {
                                     .email(admin.getEmail())
                                     .operationNature(TypeOperation.ENREGISTRER_UN_USER)
                                     .operationDate(Instant.now())
+                                    .utilisateur(admin)
                                     .build();
         this.OpSaving.save(savingx);
 

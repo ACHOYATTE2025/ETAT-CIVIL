@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import com.saasdemo.backend.dto.DeathdtoResponse;
-import com.saasdemo.backend.mapper.DeathDtoMapper;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +13,11 @@ import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.config.MagicID;
 import com.saasdemo.backend.dto.DeathDtoRequest;
+import com.saasdemo.backend.dto.DeathdtoResponse;
 import com.saasdemo.backend.entity.Death;
 import com.saasdemo.backend.entity.Registre;
 import com.saasdemo.backend.entity.Utilisateur;
+import com.saasdemo.backend.mapper.DeathDtoMapper;
 import com.saasdemo.backend.repository.DeathRepository;
 import com.saasdemo.backend.repository.RegistreRepository;
 import com.saasdemo.backend.security.TenantContext;
@@ -123,7 +123,7 @@ public class DeathService {
       if(notEmpty )
           { Death THOR = this.certificatDecesRepository.findByNumeroCertificat(num);
             if(THOR==null){throw new RuntimeException("CERTIFICAT DE DECES INEXISTANT");}
-           MagicID.magic=THOR.getId();
+           //MagicID.magic=THOR.getId();
            return this.certificatDecesRepository.findByNumeroCertificatAndCommune(num, usex.getCommune()).stream()
                    .map(deathMapperDto); }
 
@@ -143,12 +143,12 @@ public class DeathService {
   Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   TenantContext.setCurrentTenantId(usex.getId());
   try{
-    Death Xtrait = this.certificatDecesRepository.findByIdAndCommune(MagicID.magic,usex.getCommune());
+    Death Xtrait = this.certificatDecesRepository.findByEmailAndCommune(MagicID.magic,usex.getCommune());
     DEXA=Xtrait;
   }
    catch(Exception e){throw new RuntimeException("SUPPRESION IMPOSSIBLE-CERTIFICAT DE MARIAGE INTROUVABLE");}
      log.info("XTRAIT :"+DEXA);
-     this.certificatDecesRepository.deleteByIdAndCommune(MagicID.magic, usex.getCommune());
+     this.certificatDecesRepository.deleteByEmailAndCommune(MagicID.magic, usex.getCommune());
      return "CERTIFICAT DE MARIAGE N° "+DEXA.getNumeroCertificat()+" A ETE SUPPRIME" ;
     
 

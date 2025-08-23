@@ -8,8 +8,11 @@ import org.springframework.stereotype.Repository;
 import com.saasdemo.backend.entity.Area;
 import com.saasdemo.backend.entity.Wedding;
 
+import jakarta.transaction.Transactional;
+
 
 @Repository
+@Transactional
 public interface WeddingRepository extends JpaRepository<Wedding,Long>{
 
   List<Wedding>  findByNumeroCertificatMariageAndCommune(String num, Area commune);
@@ -27,5 +30,9 @@ public interface WeddingRepository extends JpaRepository<Wedding,Long>{
   
   /*compter le nombre de certificat */
   Long  countByCommune(Area commune);
+
+  Wedding findByEmailAndCommune(String magic, Area commune);
+
+  void deleteByEmailAndCommune(String magic, Area commune);
     
 }

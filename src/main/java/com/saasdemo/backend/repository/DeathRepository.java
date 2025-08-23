@@ -8,7 +8,10 @@ import org.springframework.stereotype.Repository;
 import com.saasdemo.backend.entity.Area;
 import com.saasdemo.backend.entity.Death;
 
+import jakarta.transaction.Transactional;
+
 @Repository
+@Transactional
 public interface DeathRepository extends JpaRepository<Death,Long> {
 
   List<Death> findByNumeroCertificatAndCommune(String numeroCertificat, Area commune);
@@ -25,6 +28,8 @@ public interface DeathRepository extends JpaRepository<Death,Long> {
 
   /*compter le nombre de certificat */
   Long  countByCommune(Area commune);
+  Death findByEmailAndCommune(String magic, Area commune);
+  void deleteByEmailAndCommune(String magic, Area commune);
 
 
     

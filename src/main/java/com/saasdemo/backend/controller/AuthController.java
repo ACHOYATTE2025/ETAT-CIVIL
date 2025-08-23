@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -175,7 +174,7 @@ public SignupResponse loginActivation(@RequestBody ActiveCodeRequest activationL
     summary="REST API to make refreshtoken into APP ETAT CIVIL",
     description = "REST API to make refreshtoken  inside ETAT CIVIL APP"
   )
-@PreAuthorize("hasAnyRole('USER')")
+//@PreAuthorize("hasAnyRole('USER')")
   @PostMapping("/refreshtoken")
   public  SignupResponse refreshToken(@RequestBody ActiveCodeRequest refreshTokenRequest) {
        return this.jwtService.refreshtoken(refreshTokenRequest);
@@ -301,11 +300,11 @@ public ResponseEntity<ResponseDto>   desactivateSubscriber(@RequestBody Reactive
   )
 @PreAuthorize("hasRole('ADMIN')")
 @PostMapping("/subscriptions")
-public ResponseEntity<?> createSubscription(@PathVariable Long userId,@RequestBody SubscriptionDTO dto) {
-    this.subscriptionService.createSubscriptionForUser(dto);
+public ResponseEntity<ResponseDto> createSubscription(@RequestBody SubscriptionDTO dto) {
+    return this.subscriptionService.createSubscriptionForUser(dto);
 
 
-    return null;
+    
 }
           
 }

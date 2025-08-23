@@ -2,6 +2,8 @@ package com.saasdemo.backend.entity;
 
 import java.sql.Date;
 
+import org.hibernate.annotations.NaturalId;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,6 +30,10 @@ public class Birth extends BaseEntity{
   private Long id;
 
   private  String numeroExtrait;
+
+  @NaturalId
+  private  String email;
+  
   private  String lieuDelivrance;
   private  Date dateDelivrance;
 
