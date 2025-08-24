@@ -1,6 +1,6 @@
 # 🏛️ Gestion d'État Civil Multi-Tenant
 
-**Plateforme SaaS de gestion d'état civil** développée avec **Spring Boot** et **PostgreSQL**, conçue pour permettre à plusieurs organisations (villes, mairies, institutions) de gérer leurs actes d'état civil en toute sécurité sur une même infrastructure.
+**Plateforme SaaS de gestion d'état civil** développée avec **Spring Boot** et **MySQL**, conçue pour permettre à plusieurs organisations (villes, mairies, institutions) de gérer leurs actes d'état civil en toute sécurité sur une même infrastructure.
 
 ---
 
