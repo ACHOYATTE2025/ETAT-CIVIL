@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.saasdemo.backend.dto.BirthDtoResponse;
 import com.saasdemo.backend.entity.Area;
 import com.saasdemo.backend.entity.Birth;
 
@@ -30,7 +31,7 @@ public interface BirthRepository extends JpaRepository<Birth,Long> {
   List<Birth> findAllByEmailAndCommune(String email, Area commune);
 
   //avec pagination
-    Page<Birth> findByCommune(Area commune, org.springframework.data.domain.Pageable pageable);
+    Page<BirthDtoResponse> findByCommune(Area commune, org.springframework.data.domain.Pageable pageable);
   
  
 

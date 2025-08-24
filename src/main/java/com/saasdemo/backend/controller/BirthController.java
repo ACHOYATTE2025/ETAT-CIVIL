@@ -3,6 +3,7 @@ package com.saasdemo.backend.controller;
 import java.util.stream.Stream;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.saasdemo.backend.dto.BirthDtoRequest;
 import com.saasdemo.backend.dto.BirthDtoResponse;
 import com.saasdemo.backend.dto.ResponseDto;
-import com.saasdemo.backend.entity.Birth;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.service.BirthService;
 
@@ -67,17 +67,19 @@ Stream <BirthDtoResponse> ReadBirthCertificate(@RequestParam(required = false)  
 }
 
 //lire les extraits avec tri ete pagination
-@GetMapping("/ListBirthCertificates")
-public ResponseEntity<?> listBirthCertificates(
+@GetMapping("/ListBirthCertificatesByTri")
+public ResponseEntity<Page<BirthDtoResponse>> listBirthCertificates(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size,
         @RequestParam(defaultValue = "dateNaissance") String sortBy,
         @RequestParam(defaultValue = "asc") String sortDir) {
 
     Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    Page<Birth> extraitsPage = this.birthService.getExtraitsByCommune(usex.getCommune(), page, size, sortBy, sortDir);
+    Page<BirthDtoResponse> extraitsPage = this.birthService.getExtraitsByCommune(usex.getCommune(), page, size, sortBy, sortDir);
 
-    return ResponseEntity.ok(extraitsPage);
+    return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(extraitsPage);
 }
 
 

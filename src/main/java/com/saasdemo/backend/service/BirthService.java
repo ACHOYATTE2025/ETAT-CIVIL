@@ -224,7 +224,7 @@ public Stream<BirthDtoResponse> ReadBirth(String num) {
 
 
   //lire les extraits avec paginations et tri
-  public Page<Birth> getExtraitsByCommune(Area commune, int page, int size, String sortBy, String sortDir) {
+  public Page<BirthDtoResponse> getExtraitsByCommune(Area commune, int page, int size, String sortBy, String sortDir) {
   Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
     Pageable pageable = PageRequest.of(page, size, sort);
     return extraitNaissanceRepository.findByCommune(commune, pageable);

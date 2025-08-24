@@ -1,6 +1,8 @@
 package com.saasdemo.backend.dto;
 
-import java.sql.Date;
+import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Data;
 
@@ -9,13 +11,17 @@ public class BirthDtoRequest {
   
   private String email;
   private  String lieuDelivrance;
-  private  Date dateDelivrance;
+
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private  LocalDate dateDelivrance;
 
 
 //information naissance
   private String nomComplet;
   private String lieuNaissance;
-  private Date dateNaissance;
+
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private LocalDate dateNaissance;
   
 
 //information Pere
@@ -34,8 +40,12 @@ public class BirthDtoRequest {
   private String marie;
   private String marieAvec;
   private String numeroDecisionDM;
-  private Date dissolutionMariage;
-  private Date deces;
+
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private LocalDate dissolutionMariage;
+
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private LocalDate deces;
   
     
 }

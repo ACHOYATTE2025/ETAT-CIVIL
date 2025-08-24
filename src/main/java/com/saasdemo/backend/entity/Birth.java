@@ -1,8 +1,10 @@
 package com.saasdemo.backend.entity;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 import org.hibernate.annotations.NaturalId;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -35,12 +37,17 @@ public class Birth extends BaseEntity{
   private  String email;
   
   private  String lieuDelivrance;
-  private  Date dateDelivrance;
+
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private  LocalDate dateDelivrance;
 
 
 //information naissance
   private String nomComplet;
-  private Date dateNaissance;
+
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private LocalDate dateNaissance;
+
   private String lieuNaissance;
 
 //information Pere
@@ -59,8 +66,12 @@ public class Birth extends BaseEntity{
   private String marie;
   private String marieAvec;
   private String numeroDecisionDM;
-  private Date dissolutionMariage;
-  private Date deces;
+
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private LocalDate dissolutionMariage;
+
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private LocalDate deces;
   
 
 //utilisateur
