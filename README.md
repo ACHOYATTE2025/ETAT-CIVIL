@@ -12,7 +12,7 @@ Ce projet propose un système complet pour :
 - Supporter plusieurs organisations sur une seule application (**multi-tenant**)
 - Assurer l'authentification et la gestion des utilisateurs avec **JWT**
 - Gérer les rôles (Administrateur, Utilisateur)
-- Permettre l'abonnement et le paiement via **Paystack**
+- Permettre l'abonnement et le paiement 
 - Fournir un tableau de bord administrateur avec statistiques
 
 ---
@@ -23,7 +23,7 @@ Ce projet propose un système complet pour :
 - 🏢 Gestion multi-organisations (chaque organisation gère ses propres données)
 - 📄 Gestion des documents d'état civil (création, consultation, édition)
 - 👥 Gestion des rôles utilisateurs
-- 💳 Gestion des abonnements et paiements via **Paystack**
+- 💳 Gestion des abonnements et paiements 
 - 📊 Tableau de bord avec indicateurs clés : activité, paiements, utilisateurs
 - 🔗 API RESTful pour intégration externe
 - 🛡️ Séparation stricte des données par organisation
@@ -35,7 +35,7 @@ Ce projet propose un système complet pour :
 - **Spring Boot** (backend)
 - **Spring Security** (authentification double facteur /autorisation) | Token - Jwt 
 - **Spring Data JPA** (accès aux données)
-- **PostgreSQL** (base de données relationnelle)
+- **MySQL** (base de données relationnelle)
 - **Paystack API** (paiement en ligne)
 - **Maven** (gestion de projet)
 - **Docker** (déploiement — optionnel)
@@ -48,7 +48,7 @@ Ce projet propose un système complet pour :
 
 - Java 17 ou plus
 - Maven
-- PostgreSQL
+- MySQL
 
 
 ### Étapes
