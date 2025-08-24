@@ -1,8 +1,12 @@
 package com.saasdemo.backend.controller;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -21,10 +25,12 @@ import com.saasdemo.backend.dto.ReactivedCompteRequest;
 import com.saasdemo.backend.dto.ResponseDto;
 import com.saasdemo.backend.dto.SignupRequest;
 import com.saasdemo.backend.dto.SignupResponse;
+import com.saasdemo.backend.dto.SouscriptionResponseDto;
 import com.saasdemo.backend.dto.SubscriptionDTO;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.service.AuthService;
 import com.saasdemo.backend.service.JwtService;
+import com.saasdemo.backend.service.PdfService;
 import com.saasdemo.backend.service.SubscriptionService;
 import com.saasdemo.backend.service.UtilisateurService;
 import com.saasdemo.backend.util.JwtUtil;
@@ -51,15 +57,18 @@ private final UtilisateurService utilisateurService;
 private final JwtUtil jwtUtil;
 private final SubscriptionService subscriptionService;
 private final JwtService jService;
+private final PdfService pdfService;
 
   public AuthController(AuthService authService,UtilisateurService utilisateurService, 
-  JwtUtil jwtUtil,SubscriptionService subscriptionService, JwtService jwtService, JwtService jService) {
+  JwtUtil jwtUtil,SubscriptionService subscriptionService, JwtService jwtService, JwtService jService, PdfService pdfService) {
     this.authService = authService;
     this.utilisateurService = utilisateurService;
     this.jwtUtil = jwtUtil;
     this.subscriptionService = subscriptionService;
     this.jwtService = jwtService;
     this.jService = jService;
+    this.pdfService = pdfService;
+    
     
   }
 
@@ -299,12 +308,24 @@ public ResponseEntity<ResponseDto>   desactivateSubscriber(@RequestBody Reactive
     description = "REST API to subscribe inside ETAT CIVIL APP"
   )
 @PreAuthorize("hasRole('ADMIN')")
-@PostMapping("/subscriptions")
-public ResponseEntity<ResponseDto> createSubscription(@RequestBody SubscriptionDTO dto) {
-    return this.subscriptionService.createSubscriptionForUser(dto);
+@PostMapping("/subscription")
+public ResponseEntity<SouscriptionResponseDto> createSubscription(@RequestBody SubscriptionDTO dto) {
+    return this.subscriptionService.createSubscriptionForUser(dto);}
 
 
-    
+
+@PreAuthorize("hasRole('ADMIN')")
+@GetMapping("/subscription/pdf")
+public ResponseEntity<byte[]> getSubscriptionPdf() throws IOException {
+    ByteArrayInputStream pdfStream = subscriptionService.generateSubscriptionTicketPdf();
+
+    byte[] pdfBytes = pdfStream.readAllBytes();
+
+    return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=subscription.pdf")
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(pdfBytes);
 }
+
           
 }

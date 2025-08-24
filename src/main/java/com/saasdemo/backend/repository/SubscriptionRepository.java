@@ -18,9 +18,13 @@ import com.saasdemo.backend.enums.StatutAbonnement;
 @Repository
 public interface SubscriptionRepository extends CrudRepository<Subscription, Long> {
 
-    //check if subscription is vzlid
-    @Query("SELECT s FROM Subscription s WHERE s.commune.id = :orgId AND s.status = 'active' AND s.endDate > CURRENT_TIMESTAMP")
-    Optional<Subscription> findActiveByCommuneId(@Param("orgId") Long orgId);
+  // Vérifie si la souscription est valide (ACTIVE ou TRIAL) et non expirée
+    @Query("SELECT s FROM Subscription s " +
+       "WHERE s.commune = :commune " +
+       "AND s.status IN ('ACTIVE', 'TRIAL') " +
+       "AND s.endDate > CURRENT_TIMESTAMP")
+Optional<Subscription> findActiveByCommune(@Param("commune") Area commune);
+
 
     boolean existsByCommuneAndActiveTrueAndEndDateAfter(Area commune,LocalDateTime locadate);
 
