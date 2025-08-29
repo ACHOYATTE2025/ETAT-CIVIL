@@ -1,5 +1,6 @@
 package com.saasdemo.backend.service;
 
+import java.io.ByteArrayInputStream;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -46,10 +47,12 @@ public class BirthService {
   private final RegistreRepository registreRepository;
   private final BirthDtoMapper birthDtoMapper;
   private final OperationSavingRepository OpSaving;
+  private final PdfService pdfService;
   
-  private String THOR;
+ 
   private Birth birth;
   private List<Birth> births;
+  private Birth extros;
 
   /*==============================================*/
   /*       Volet extrait de naissance             */
@@ -81,9 +84,11 @@ public class BirthService {
 
           //generation de numero d'extrait securitaire
           String numerox =UUID.randomUUID().toString();
+          Optional<Birth> actubirth = this.extraitNaissanceRepository.findByNumeroExtraitAndEmailAndCommune(numerox,usex.getEmail(), usex.getCommune());
 
+          if (actubirth.isPresent()){throw new RuntimeException("EXTRAIT N°"+ numerox + " EXISTE DEJA");}
           //enregistrer un extrait
-          Birth extros = Birth.builder()
+           extros = Birth.builder()
                                     .commune(usex.getCommune())
                                     .dateDelivrance(extrait.getDateDelivrance())
                                     .dateNaissance(extrait.getDateNaissance())
@@ -92,7 +97,7 @@ public class BirthService {
                                     .dissolutionMariage(extrait.getDissolutionMariage())
                                     .domicileMere(extrait.getDomicileMere())
                                     .domicilePere(extrait.getDomicilePere())
-                                    .lieuDelivrance(extrait.getLieuDelivrance())
+                                    .lieuDelivrance(usex.getCommune().getNameCommune())
                                     .lieuNaissance(extrait.getLieuNaissance())
                                     .marie(extrait.getMarie())
                                     .marieAvec(extrait.getMarieAvec())
@@ -132,9 +137,15 @@ public class BirthService {
      
     return XXX;}
     
-  
+//=========================================================================================================================================================
 
-  
+
+//generer le pdf d'un certificat venant d'être créer
+public ByteArrayInputStream generateBirthCertificatepdfservice(){
+    return this.pdfService.generateBirthCertificatepdf(extros);
+}
+
+//=========================================================================================================================================================  
 
 
 
@@ -200,7 +211,7 @@ public class BirthService {
   
   
 
-    
+//=========================================================================================================================================================      
 
   
 // Lire un extrait ou les extraits
@@ -222,6 +233,17 @@ public Stream<BirthDtoResponse> ReadBirth(String num) {
           
   }
 
+//=========================================================================================================================================================  
+
+//lire un extrait par Id  
+public Stream<BirthDtoResponse> ReadBirthById(Long id) {
+
+  if(id==null){throw new RuntimeException("ID non Inséré");}
+  Optional<Birth> birthd = this.extraitNaissanceRepository.findById(id);
+  if(birthd.isEmpty()){throw new RuntimeException("EXTRAIT INEXISTANT!!!");}
+
+  return birthd.stream().map(birthDtoMapper);
+}
 
   //lire les extraits avec paginations et tri
   public Page<BirthDtoResponse> getExtraitsByCommune(Area commune, int page, int size, String sortBy, String sortDir) {
@@ -229,6 +251,8 @@ public Stream<BirthDtoResponse> ReadBirth(String num) {
     Pageable pageable = PageRequest.of(page, size, sort);
     return extraitNaissanceRepository.findByCommune(commune, pageable);
 }
+
+//=========================================================================================================================================================  
 
 
 //suprimmer un extrait
@@ -265,6 +289,44 @@ public ResponseEntity<ResponseDto> Birthdeletion() {
             .status(HttpStatus.OK)
             .body(new ResponseDto(406, "EXTRAIT DE NAISSANCE N° "+actos.getNumeroExtrait()+" A ETE SUPPRIME" ));
      }
+
+//=========================================================================================================================================================  
+
+//suprimmer un extrait by id
+@Transactional
+public ResponseEntity<ResponseDto> Birthdeletionid(Long id) {
+  Birth DEXO=null;
+  Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+  TenantContext.setCurrentTenantId(usex.getId());
+  
+     if(id== null){throw new RuntimeException( "SUPPRESSION IMPOSSIBLE") ; }
+    Birth birtho =  this.extraitNaissanceRepository.findByIdAndCommune( id, usex.getCommune());
+    DEXO=birtho;
+      if(birtho== null){throw new RuntimeException( "SUPPRESSION IMPOSSIBLE") ; }
+ 
+     log.info("XTRAIT :"+DEXO);
+     
+
+        //save operation of register USER in OPeration saving
+        OperationsSaving savingx  = OperationsSaving.builder()
+                                    .name(usex.getUsername())
+                                    .email(usex.getEmail())
+                                    .operationNature(TypeOperation.SUPPRIMER_UN_EXTRAIT_NAISSANCE)
+                                    .operationDate(Instant.now())
+                                    .utilisateur(usex)
+                                    .NumeroActe(birtho.getNumeroExtrait())
+                                    .build();
+        this.OpSaving.save(savingx);
+
+        //delete an birth document
+        this.extraitNaissanceRepository.deleteByEmailAndCommune(birtho.getEmail(), usex.getCommune());
+      Birth actas = birtho;
+      birtho =null;
+     return ResponseEntity
+            .status(HttpStatus.OK)
+            .body(new ResponseDto(406, "EXTRAIT DE NAISSANCE N° "+actas.getNumeroExtrait()+" A ETE SUPPRIME" ));
+     }
+
 
 
 

@@ -1,9 +1,6 @@
 package com.saasdemo.backend.service;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -133,15 +130,4 @@ return ResponseEntity
    }
 
 
-    public  ByteArrayInputStream  generateSubscriptionTicketPdf()  throws IOException {
-         // Formatter pour avoir yyyy-MM-dd HH:mm:ss
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-        String formattedDate = admin.getSubscription().getEndDate().format(formatter);
-
-         //generer le reçu Pdf de la souscription
-               ByteArrayInputStream pdfStream = this.pdfService.generateSubscriptionPdf(admin.getUsername(),admin.getCommune().getNameCommune(),
-               dtox.getAmount(),  formattedDate.toString());
-            return pdfStream;
-    }
 }

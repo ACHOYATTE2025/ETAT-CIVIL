@@ -12,5 +12,7 @@ import com.saasdemo.backend.entity.RefreshToken;
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken,Long> {
 
   Optional <RefreshToken> findByValeur(String valeur);
+
+  
     
 }

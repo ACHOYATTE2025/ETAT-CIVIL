@@ -47,6 +47,7 @@ public class JwtService {
 
         // générer nouveau JWT
         String jwtBearer = jwtUtil.generateToken(utilisateur);
+        
 
         // refresh token
         RefreshToken refreshToken = RefreshToken.builder()

@@ -1,10 +1,15 @@
 package com.saasdemo.backend.controller;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.stream.Stream;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +24,7 @@ import com.saasdemo.backend.dto.BirthDtoResponse;
 import com.saasdemo.backend.dto.ResponseDto;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.service.BirthService;
+import com.saasdemo.backend.service.PdfService;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BirthController {
   private final BirthService birthService;
+  private PdfService pdfService;
 
 
   public BirthController( BirthService birthService){
@@ -51,7 +58,19 @@ public  ResponseEntity<ResponseDto>  BirthCertificateCreation(@Valid @RequestBod
   return altris;
   }
 
+//imprimer l'extrait de naissance crée
+@GetMapping("/birthcertificatepdf")
+public ResponseEntity<byte[]> getbirthcertificatePdf() throws IOException {
+    ByteArrayInputStream pdfStream = this.birthService.generateBirthCertificatepdfservice();
 
+    byte[] pdfBytes = pdfStream.readAllBytes();
+
+    return ResponseEntity.ok()
+            //.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=subscription.pdf") voir le fichier dans le navigateur
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=birthcertificate.pdf")
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(pdfBytes);
+}
 
 
 //Modifier un Extrait de naissance
@@ -64,6 +83,13 @@ private ResponseEntity<ResponseDto> UpdateBirthCertificate(@RequestBody BirthDto
 @GetMapping(path="/ReadBirthCertificate")
 Stream <BirthDtoResponse> ReadBirthCertificate(@RequestParam(required = false)  String num){
   return  this.birthService.ReadBirth(num);
+}
+
+
+//lire un extrait de naissance par Id
+@GetMapping(path="/ReadBirthCertificate/{id}")
+Stream <BirthDtoResponse> ReadBirthCertificateById(@Valid @RequestParam(required = true)Long id ){
+  return  this.birthService.ReadBirthById(id);
 }
 
 //lire les extraits avec tri ete pagination
@@ -84,11 +110,18 @@ public ResponseEntity<Page<BirthDtoResponse>> listBirthCertificates(
 
 
 
-//suprimmer un extrait de naissance
-@DeleteMapping(path="/BirthCertificateDeletion")
-//@PreAuthorize("hasRole('ADMIN')")
-private ResponseEntity<ResponseDto> BirthCertificateDeletion(){
+//suprimmer un certifcat de naissance
+@DeleteMapping(path="/birthCertificateDeletion")
+@PreAuthorize("hasRole('ADMIN')")
+private  ResponseEntity<ResponseDto>  deathCertificateDeletion(){
    return this.birthService.Birthdeletion();
+}
+
+//suprimmer un extrait de naissance par Id
+@DeleteMapping(path="/birthCertificateDeletionbyid/{id}")
+@PreAuthorize("hasRole('ADMIN')")
+private ResponseEntity<ResponseDto> BirthCertificateDeletionbyid(@Valid @RequestParam(required = true)Long id){
+   return this.birthService.Birthdeletionid(id);
 }
 
 

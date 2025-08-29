@@ -3,7 +3,6 @@ package com.saasdemo.backend.repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties.Pageable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -49,7 +48,8 @@ public interface BirthRepository extends JpaRepository<Birth,Long> {
   Long  countByCommune(Area commune);
 
   void deleteByEmailAndCommune(String magic, Area commune);
+
+  Optional<Birth> findByNumeroExtraitAndEmailAndCommune(String numerox, String email, Area commune);
   
 
-    
 }

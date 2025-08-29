@@ -1,12 +1,8 @@
 package com.saasdemo.backend.controller;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.List;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -25,8 +21,6 @@ import com.saasdemo.backend.dto.ReactivedCompteRequest;
 import com.saasdemo.backend.dto.ResponseDto;
 import com.saasdemo.backend.dto.SignupRequest;
 import com.saasdemo.backend.dto.SignupResponse;
-import com.saasdemo.backend.dto.SouscriptionResponseDto;
-import com.saasdemo.backend.dto.SubscriptionDTO;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.service.AuthService;
 import com.saasdemo.backend.service.JwtService;
@@ -302,30 +296,5 @@ public ResponseEntity<ResponseDto>   desactivateSubscriber(@RequestBody Reactive
     
 
 
-//suscribe to services
- @Operation(
-    summary="REST API to subscribe  into APP ETAT CIVIL",
-    description = "REST API to subscribe inside ETAT CIVIL APP"
-  )
-@PreAuthorize("hasRole('ADMIN')")
-@PostMapping("/subscription")
-public ResponseEntity<SouscriptionResponseDto> createSubscription(@RequestBody SubscriptionDTO dto) {
-    return this.subscriptionService.createSubscriptionForUser(dto);}
-
-
-
-@PreAuthorize("hasRole('ADMIN')")
-@GetMapping("/subscription/pdf")
-public ResponseEntity<byte[]> getSubscriptionPdf() throws IOException {
-    ByteArrayInputStream pdfStream = subscriptionService.generateSubscriptionTicketPdf();
-
-    byte[] pdfBytes = pdfStream.readAllBytes();
-
-    return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=subscription.pdf")
-            .contentType(MediaType.APPLICATION_PDF)
-            .body(pdfBytes);
-}
-
-          
+        
 }

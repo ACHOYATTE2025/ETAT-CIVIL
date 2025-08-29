@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -26,17 +28,24 @@ public interface SubscriptionRepository extends CrudRepository<Subscription, Lon
 Optional<Subscription> findActiveByCommune(@Param("commune") Area commune);
 
 
-    boolean existsByCommuneAndActiveTrueAndEndDateAfter(Area commune,LocalDateTime locadate);
+  boolean existsByCommuneAndActiveTrueAndEndDateAfter(Area commune,LocalDateTime locadate);
 
-    Optional <Subscription>  findById(Long id);
+ 
+  Optional <Subscription> findByUsersName(String usersName);
 
-   Optional <Subscription> findByUsersName(String usersName);
+  List<Subscription> findByUsersNameAndActiveTrueAndEndDateBefore( String name,LocalDateTime now);
 
-   List<Subscription> findByUsersNameAndActiveTrueAndEndDateBefore( String name,LocalDateTime now);
+  Optional<Subscription> findByUsersNameAndEndDateBefore( String name,LocalDateTime now);
+
+  Optional<Subscription> findByUsersNameAndEndDateAfter( String name,LocalDateTime now);
 
   Optional <Subscription>  findByUsersNameAndActiveTrueAndEndDateAfterAndStatus(String ado,LocalDateTime lol,StatutAbonnement stat);
 
+  List<Subscription> findAllByCommune(Area commune);
 
+
+  Page<Subscription> findAllByCommune(Area commune, Pageable pageable);
+  
 
 
 

@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,6 +35,7 @@ public class Birth extends BaseEntity{
   private  String numeroExtrait;
 
   @NaturalId
+  @Email(message = "Invalid email format")
   private  String email;
   
   private  String lieuDelivrance;
