@@ -97,7 +97,7 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
     log.info("commune :"+commune);
     if(commune.isEmpty() ){
           
-      Area area= Area.builder().nameCommune("Mairie_"+request.getNamecommune()).build();
+      Area area= Area.builder().nameCommune(request.getNamecommune()).build();
       Area communeX = this.communeRepository.save(area);
           
     //verification email
