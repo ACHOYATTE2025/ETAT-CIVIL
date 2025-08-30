@@ -5,8 +5,11 @@ import java.time.LocalDate;
 import org.hibernate.annotations.NaturalId;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.saasdemo.backend.enums.RegimeMatrimoniale;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,6 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,6 +39,7 @@ public class Birth extends BaseEntity{
   private  String numeroExtrait;
 
   @NaturalId
+  @NotNull
   @Email(message = "Invalid email format")
   private  String email;
   
@@ -65,7 +70,9 @@ public class Birth extends BaseEntity{
   private String nationaliteMere;
 
   //information sur LES MENTIONS
-  private String marie;
+  @Enumerated(EnumType.STRING)
+  private RegimeMatrimoniale marie;
+
   private String marieAvec;
   private String numeroDecisionDM;
 

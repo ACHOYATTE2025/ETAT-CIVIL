@@ -2,7 +2,11 @@ package com.saasdemo.backend.dto;
 
 import java.time.LocalDate;
 
+import com.saasdemo.backend.enums.RegimeMatrimoniale;
+
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -42,7 +46,8 @@ public class BirthDtoResponse {
   private String nationaliteMere;
 
   //information sur LES MENTIONS
-  private String marie;
+  @Enumerated(EnumType.STRING)
+  private RegimeMatrimoniale marie;
   private String marieAvec;
   private String numeroDecisionDM;
   private LocalDate dissolutionMariage;

@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,19 +27,27 @@ import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.service.BirthService;
 import com.saasdemo.backend.service.PdfService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
 
 @RestController
 @Slf4j
+
+
+@Tag(
+  name = "BIRTH_CONTROLLER   REST Api for ETAT CIVIL",
+  description="BIRTH_CONTROLLER  REST Api in  ETAT CIVIL APP to CREATE,READ,UPDATE,DELETE  details"
+)
 public class BirthController {
   private final BirthService birthService;
-  private PdfService pdfService;
+  private final PdfService pdfService;
 
 
-  public BirthController( BirthService birthService){
+  public BirthController( BirthService birthService, PdfService pdfService){
     this.birthService = birthService;
+    this.pdfService = pdfService;
   }
 
 
@@ -52,7 +61,7 @@ public class BirthController {
 //Creer un Extrait de Naissance
 
 @PostMapping(path="/BirthCertificateCreation")
-public  ResponseEntity<ResponseDto>  BirthCertificateCreation(@Valid @RequestBody BirthDtoRequest extrait ){
+public  ResponseEntity<ResponseDto>  BirthCertificateCreation( @RequestBody BirthDtoRequest extrait ){
   ResponseEntity<ResponseDto> altris=this.birthService.BirthCreate(extrait);
   log.info("birthcreation :"+altris);
   return altris;
@@ -74,10 +83,15 @@ public ResponseEntity<byte[]> getbirthcertificatePdf() throws IOException {
 
 
 //Modifier un Extrait de naissance
-@PutMapping(path="/UpdateBirthCertificate")
-private ResponseEntity<ResponseDto> UpdateBirthCertificate(@RequestBody BirthDtoRequest extrait){
-  return this.birthService.UpdateBirth(extrait);
+@PutMapping("/updatebirth/{num}")
+public ResponseEntity<BirthDtoResponse> updateBirthCertificate(
+        @PathVariable String num,
+        @RequestBody BirthDtoRequest request) {
+
+    ResponseEntity<BirthDtoResponse> updated = birthService.updatebirthservice(num, request);
+    return updated;
 }
+
 
 //lire tous les extraits ou chercher un extrait
 @GetMapping(path="/ReadBirthCertificate")

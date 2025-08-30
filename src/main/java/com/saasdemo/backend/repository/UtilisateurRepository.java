@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.saasdemo.backend.entity.Area;
+import com.saasdemo.backend.entity.Role;
 import com.saasdemo.backend.entity.Utilisateur;
-import com.saasdemo.backend.enums.TypeRole;
 
 
 
@@ -21,10 +21,10 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur,Long> {
 
   
   //compter admin ou user selon la commune
-  long countByRoleAndCommuneId(TypeRole role,long id);
+  long countByRoleAndCommuneId(Role role,long id);
 
   //compter le nombre d'admin actif selon la commune
-  long countByRoleAndCommuneAndActive(TypeRole role, Area commune, Boolean vrai);
+  long countByRoleAndCommuneAndActive(Role  role, Area commune, Boolean vrai);
   
   
   

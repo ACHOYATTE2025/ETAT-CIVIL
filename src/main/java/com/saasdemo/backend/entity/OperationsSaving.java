@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import com.saasdemo.backend.enums.TypeOperation;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -35,7 +36,7 @@ public class OperationsSaving {
   @NotNull
   private String email;
 
- 
+  @Column(name = "operation_nature", length = 50)
   @Enumerated(value = EnumType.STRING)
   private TypeOperation operationNature;
 

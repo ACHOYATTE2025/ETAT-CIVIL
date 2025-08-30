@@ -20,6 +20,7 @@ import com.saasdemo.backend.security.TenantContext;
 import com.saasdemo.backend.service.ChatService;
 import com.saasdemo.backend.util.JwtUtil;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +28,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/chat")
 @Slf4j
 @AllArgsConstructor
+
+
+@Tag(
+  name = "TCHAT_CONTROLLER   REST Api for ETAT CIVIL",
+  description="TCHAT_CONTROLLER  REST Api in  ETAT CIVIL APP to CREATE,READ,UPDATE,DELETE  details"
+)
 public class ChatController {
       private final ChatService chatService;
       private final JwtUtil jwtUtil;

@@ -8,11 +8,18 @@ import com.saasdemo.backend.service.AuthService;
 import com.saasdemo.backend.service.DashboardService;
 import com.saasdemo.backend.service.UtilisateurService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 
 @RestController
 @RequiredArgsConstructor
+
+
+@Tag(
+  name = "DASHBOARD_CONTROLLER   REST Api for ETAT CIVIL",
+  description="DASHBOARD_CONTROLLER  REST Api in  ETAT CIVIL APP to CREATE,READ,UPDATE,DELETE  details"
+)
 public class DashboardController {
 
   private final UtilisateurService utilisateurService;

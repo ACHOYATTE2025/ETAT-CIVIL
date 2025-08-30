@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,15 +48,19 @@ import com.saasdemo.backend.repository.BirthRepository;
 import com.saasdemo.backend.repository.SubscriptionRepository;
 
 import io.jsonwebtoken.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class PdfService {
 
 
-  private Utilisateur admin=null;
-  private SubscriptionDTO dtox;
-  private String Validitex;
+private Utilisateur admin=null;
+private SubscriptionDTO dtox;
+private String Validitex;
+
         
+
 public final SubscriptionRepository subscriptionRepository;
 public final BirthRepository birthRepository;
 
@@ -168,7 +173,7 @@ public PdfService (SubscriptionRepository subscriptionRepository, BirthRepositor
 
 
 //liste de tous les reçus dans un seul fichier pdf
-public ByteArrayInputStream generateAllCommunePdf() {
+public ByteArrayInputStream generateAllSubscriptionCommunePdf() {
 
          Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!(principal instanceof Utilisateur admin)) {
@@ -257,7 +262,7 @@ public ByteArrayInputStream generateAllCommunePdf() {
 
     public ByteArrayInputStream generateAllSubscriptionPdf() throws Exception{
 
-        ByteArrayInputStream pdfStreams = generateAllCommunePdf();
+        ByteArrayInputStream pdfStreams = generateAllSubscriptionCommunePdf();
 
         return pdfStreams;
 
@@ -391,7 +396,7 @@ public ByteArrayInputStream generateBirthCertificatepdf(Birth birx) {
         fatherTable.addCell(new Cell().add(new Paragraph("Informations sur le père")
                 .setFont(fontBold)
                 .setFontColor(new DeviceRgb(255, 127, 0)))
-                .setBackgroundColor(ColorConstants.LIGHT_GRAY)
+                .setBackgroundColor(ColorConstants.BLACK)
                 .setTextAlignment(TextAlignment.LEFT));
         fatherTable.addCell(new Cell().add(new Paragraph("Nom : " + getOrNeant(birth.getNomPere()))
                 .setFont(fontBold).setFontColor(ColorConstants.BLACK)));
@@ -408,7 +413,7 @@ public ByteArrayInputStream generateBirthCertificatepdf(Birth birx) {
         motherTable.addCell(new Cell().add(new Paragraph("Informations sur la mère")
                 .setFont(fontBold)
                 .setFontColor(new DeviceRgb(0, 128, 0)))
-                .setBackgroundColor(ColorConstants.LIGHT_GRAY)
+                .setBackgroundColor(ColorConstants.BLACK)
                 .setTextAlignment(TextAlignment.LEFT));
         motherTable.addCell(new Cell().add(new Paragraph("Nom : " + getOrNeant(birth.getNomMere()))
                 .setFont(fontBold).setFontColor(ColorConstants.BLACK)));
@@ -427,7 +432,7 @@ public ByteArrayInputStream generateBirthCertificatepdf(Birth birx) {
                 .setUnderline()
                 .setFontColor(ColorConstants.BLACK)
                 .setMarginBottom(5));
-        document.add(new Paragraph("Marié : " + getOrNeant(birth.getMarie())).setFont(fontBold));
+        document.add(new Paragraph("Regime Matrimoniale: " + getOrNeant(birth.getMarie())).setFont(fontBold));
         document.add(new Paragraph("Avec : " + getOrNeant(birth.getMarieAvec())).setFont(fontBold));
         document.add(new Paragraph("Décision DM : " + getOrNeant(birth.getNumeroDecisionDM())).setFont(fontBold));
         document.add(new Paragraph("Date dissolution : " + getOrNeant(birth.getDissolutionMariage())).setFont(fontBold));
@@ -460,6 +465,42 @@ private String getOrNeant(Object value) {
     String str = value.toString().trim();
     return str.isEmpty() ? "Néant" : str;
 }
+
+
+// Publier la liste des extraits de naissance en PDF
+public List<ByteArrayInputStream> generateAllBirthCertificatePdf() {
+
+    // --- Vérification utilisateur ---
+    Utilisateur principal = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    log.info("Utilisateur : " + principal);
+
+    if (principal == null) {
+        throw new RuntimeException("Utilisateur non authentifié correctement.");
+    }
+
+    try {
+        List<Birth> extraits = this.birthRepository.findAll();
+        log.info("Liste des actes de naissance : " + extraits);
+
+        // Initialisation de la liste de PDFs
+        List<ByteArrayInputStream> pdfStreams = new ArrayList<>();
+
+        for (Birth abx : extraits) {
+            ByteArrayInputStream pdfStream = generateBirthCertificatepdf(abx);
+            pdfStreams.add(pdfStream);
+        }
+
+        if (pdfStreams.isEmpty()) {
+            throw new RuntimeException("Aucun extrait trouvé.");
+        }
+
+        return pdfStreams;
+
+    } catch (Exception e) {
+        throw new RuntimeException("Erreur lors de la génération des extraits : " + e.getMessage(), e);
+    }
+}
+
 
 
 

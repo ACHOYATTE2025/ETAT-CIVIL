@@ -53,6 +53,7 @@ public class BirthService {
   private Birth birth;
   private List<Birth> births;
   private Birth extros;
+ 
 
   /*==============================================*/
   /*       Volet extrait de naissance             */
@@ -88,7 +89,8 @@ public class BirthService {
 
           if (actubirth.isPresent()){throw new RuntimeException("EXTRAIT N°"+ numerox + " EXISTE DEJA");}
           //enregistrer un extrait
-           extros = Birth.builder()
+           extros = Birth.builder() 
+                                    .email(extrait.getEmail())
                                     .commune(usex.getCommune())
                                     .dateDelivrance(extrait.getDateDelivrance())
                                     .dateNaissance(extrait.getDateNaissance())
@@ -150,19 +152,17 @@ public ByteArrayInputStream generateBirthCertificatepdfservice(){
 
 
 //MODIFIER UN EXTRAIT
-  public ResponseEntity<ResponseDto> UpdateBirth(BirthDtoRequest extrait) {
+  public ResponseEntity<BirthDtoResponse> updatebirthservice(String num,BirthDtoRequest extrait) {
    
     Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    Optional<Birth>  optionalXtrait =  this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(birth.getNumeroExtrait(),usex.getCommune());
+    Optional<Birth>  optionalXtrait =  this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(num,usex.getCommune());
     
      //configurer le tenant
      TenantContext.setCurrentTenantId(usex.getCommune().getId());
+     log.info("tenantId :"+ TenantContext.getCurrentTenantId());
    
   
-    if(optionalXtrait.isEmpty()){return ResponseEntity
-                          .status(HttpStatus.BAD_REQUEST)
-                          .body(new ResponseDto(406, "EXTRAIT INCONNU"));
-                              }
+    if(optionalXtrait.isEmpty()){throw new RuntimeException("EXTRAIT INCONNU"); }
      // récupérer l'objet Birth réel
     Birth Xtrait = optionalXtrait.get();
 
@@ -171,6 +171,7 @@ public ByteArrayInputStream generateBirthCertificatepdfservice(){
      /* Xtrail.setCarnet(extrait.getCarnet());
       Xtrail.setCni1(extrait.getCni1());
       Xtrail.setCni2(extrait.getCni2());*/
+      Xtrait.setNumeroExtrait(num);
       Xtrait.setCommune(usex.getCommune());
       Xtrait.setDateDelivrance(extrait.getDateDelivrance());
       Xtrait.setDateNaissance(extrait.getDateNaissance());
@@ -190,8 +191,7 @@ public ByteArrayInputStream generateBirthCertificatepdfservice(){
       Xtrait.setNumeroDecisionDM(extrait.getNumeroDecisionDM());
       Xtrait.setProfessionMere(extrait.getProfessionMere());
       Xtrait.setProfessionMere(extrait.getProfessionMere());
-      Xtrait.setProfessionPere(extrait.getProfessionPere());
-      this.extraitNaissanceRepository.save(Xtrait);
+      Birth  saved = this.extraitNaissanceRepository.save(Xtrait);
 
          //save operation of register USER in OPeration saving
         OperationsSaving savingx  = OperationsSaving.builder()
@@ -200,13 +200,14 @@ public ByteArrayInputStream generateBirthCertificatepdfservice(){
                                     .operationNature(TypeOperation.MODIFIER_UN_EXTRAIT_NAISSANCE)
                                     .operationDate(Instant.now())
                                     .utilisateur(usex)
-                                    .NumeroActe(birth.getNumeroExtrait())
+                                    .NumeroActe(num)
                                     .build();
         this.OpSaving.save(savingx);
 
-      return ResponseEntity
-      .status(HttpStatus.OK)
-      .body( new ResponseDto(200, "EXTRAIT "+ Xtrait.getNumeroExtrait()+ " A ETE MODIFIEE AVEC SUCCES"));
+         // ✅ Ici : appeler apply sur l'instance injectée
+        BirthDtoResponse response = birthDtoMapper.apply(saved);
+
+      return ResponseEntity.ok(response);
   }
   
   

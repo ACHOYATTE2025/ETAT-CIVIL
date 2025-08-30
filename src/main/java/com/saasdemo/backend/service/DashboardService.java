@@ -4,12 +4,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.saasdemo.backend.dto.DashboardResponse;
+import com.saasdemo.backend.entity.Role;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.enums.TypeRole;
-import com.saasdemo.backend.repository.DeathRepository;
-import com.saasdemo.backend.repository.WeddingRepository;
 import com.saasdemo.backend.repository.BirthRepository;
+import com.saasdemo.backend.repository.RoleRepository;
 import com.saasdemo.backend.repository.UtilisateurRepository;
+import com.saasdemo.backend.repository.WeddingRepository;
 import com.saasdemo.backend.security.TenantContext;
 
 import lombok.RequiredArgsConstructor;
@@ -18,31 +19,41 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DashboardService {
   private final UtilisateurRepository utilisateurRepository;
-  private final DeathRepository certificatDecesRepository;
+  private final RoleRepository roleRepository;
+ 
   private final WeddingRepository certificatMariageRepository;
   private final BirthRepository extraitNaissanceRepository;
  
 
   public DashboardResponse dash() {
-   Utilisateur usx = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    Utilisateur usx = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     TenantContext.setCurrentTenantId(usx.getCommune().getId());
-   Long nbreADMIN = this.utilisateurRepository.countByRoleAndCommuneId(TypeRole.ADMIN,TenantContext.getCurrentTenantId());
-   Long  nbreUSER= this.utilisateurRepository.countByRoleAndCommuneId(TypeRole.USER,TenantContext.getCurrentTenantId()); 
-   Long nbreUSERACTIVE = this.utilisateurRepository.countByRoleAndCommuneAndActive(TypeRole.USER,usx.getCommune(),usx.getActive());
-   Long nbreADMINACTIVE = this.utilisateurRepository.countByRoleAndCommuneAndActive(TypeRole.ADMIN,usx.getCommune(),usx.getActive());
-   Long nbreCertificatDeces = this.certificatDecesRepository.countByCommune(usx.getCommune());
-   Long nbreCertificatMariage = this.certificatMariageRepository.countByCommune(usx.getCommune());
-   Long nbreExtraitNaissance = this.extraitNaissanceRepository.countByCommune(usx.getCommune());
-   return   DashboardResponse.builder()
-                  .nombreAdmin(nbreADMIN)
-                  .nombreUser(nbreUSER)
-                  .nombreAdminActive(nbreADMINACTIVE)
-                  .nombreAdminDesactive(nbreADMIN-nbreADMINACTIVE)
-                  .nombreUserActive(nbreUSERACTIVE)
-                  .nombreUserDesactive(nbreUSER-nbreUSERACTIVE)
-                  .nombreCertificatDeces(nbreCertificatDeces)
-                  .nombreCertificatMariage(nbreCertificatMariage)
-                  .nombreExtraitNaissance(nbreExtraitNaissance)
-                  .build();
+
+    Role roleAdmin = roleRepository.findByLibele(TypeRole.ADMIN)
+        .orElseThrow(() -> new RuntimeException("Role ADMIN non trouvé"));
+    /*Role roleUser = roleRepository.findByLibele(TypeRole.USER)
+        .orElseThrow(() -> new RuntimeException("Role USER non trouvé"));*/
+
+// Comptage
+Long nbreADMIN = utilisateurRepository.countByRoleAndCommuneId(roleAdmin, TenantContext.getCurrentTenantId());
+//Long nbreUSER = utilisateurRepository.countByRoleAndCommuneId(roleUser, TenantContext.getCurrentTenantId());
+
+Long nbreADMINACTIVE = utilisateurRepository.countByRoleAndCommuneAndActive(roleAdmin, usx.getCommune(), true);
+//Long nbreUSERACTIVE = utilisateurRepository.countByRoleAndCommuneAndActive(roleUser, usx.getCommune(), true);
+
+// Comptage certificats
+Long nbreExtraitNaissance = extraitNaissanceRepository.countByCommune(usx.getCommune());
+
+// Retour de la réponse
+return DashboardResponse.builder()
+        .nombreAdmin(nbreADMIN)
+        //.nombreUser(nbreUSER)
+        .nombreAdminActive(nbreADMINACTIVE)
+        .nombreAdminDesactive(nbreADMIN - nbreADMINACTIVE)
+       // .nombreUserActive(nbreUSERACTIVE)
+        //.nombreUserDesactive(nbreUSER - nbreUSERACTIVE)
+        .nombreExtraitNaissance(nbreExtraitNaissance)
+        .build();
+
   }
 }

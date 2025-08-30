@@ -1,7 +1,9 @@
 package com.saasdemo.backend.controller;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
@@ -14,6 +16,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfReader;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.utils.PdfMerger;
 import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.service.PdfService;
 import com.saasdemo.backend.service.SubscriptionService;
@@ -57,7 +63,7 @@ public ResponseEntity<byte[]> getSubscriptionPdf() throws IOException {
 @GetMapping("/subscriptionsallpdf")
 @PreAuthorize("hasRole('SUPERADMIN')")
 public ResponseEntity<byte[]> getAllSubscriptionPdf() throws Exception {
-    ByteArrayInputStream pdfStream = this.pdfService.generateAllCommunePdf();
+    ByteArrayInputStream pdfStream = this.pdfService.generateAllSubscriptionCommunePdf();
 
     byte[] pdfBytes = pdfStream.readAllBytes();
 
@@ -90,6 +96,38 @@ public ResponseEntity<Page<com.saasdemo.backend.entity.Subscription>> listSubscr
     return ResponseEntity
             .status(HttpStatus.OK)
             .body(subscriptionsPage);
+            
 }
+
+
+//======================================================================================================
+
+@PreAuthorize("hasRole('ADMIN')")
+@GetMapping("/allbirthcertifcates")
+public ResponseEntity<byte[]> getAllBirthCertificatesPdf() throws IOException {
+    List<ByteArrayInputStream> pdfStreams = this.pdfService.generateAllBirthCertificatePdf();
+
+    ByteArrayOutputStream mergedOutput = new ByteArrayOutputStream();
+
+    PdfDocument pdfDoc = new PdfDocument(new PdfWriter(mergedOutput));
+    PdfMerger merger = new PdfMerger(pdfDoc);
+
+    for (ByteArrayInputStream bais : pdfStreams) {
+        PdfDocument tempDoc = new PdfDocument(new PdfReader(bais));
+        merger.merge(tempDoc, 1, tempDoc.getNumberOfPages());
+        tempDoc.close();
+    }
+
+    pdfDoc.close();
+
+    byte[] pdfBytes = mergedOutput.toByteArray();
+
+    return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=all_birth_certificates.pdf")
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(pdfBytes);
+}
+
+
     
 }

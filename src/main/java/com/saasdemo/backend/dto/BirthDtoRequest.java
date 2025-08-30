@@ -3,15 +3,18 @@ package com.saasdemo.backend.dto;
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.saasdemo.backend.enums.RegimeMatrimoniale;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
 import lombok.Data;
 
-@Data
 @Schema(name = "Birth",
         description = "Schema to request information"
 )
+@Data
 public class BirthDtoRequest {
   
 
@@ -103,7 +106,8 @@ public class BirthDtoRequest {
    @Schema(
             description = "user's wedding date"
     )
-  private String marie;
+  @Enumerated(EnumType.STRING)
+  private RegimeMatrimoniale marie;
 
   @Schema(
             description = "user's wedding partener"

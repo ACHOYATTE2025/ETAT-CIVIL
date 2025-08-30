@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class SubscriptionDTO {
-   private double amount;
+   private Integer amount;
   
 }

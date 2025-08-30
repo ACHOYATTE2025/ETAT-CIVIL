@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.saasdemo.backend.enums.StatutAbonnement;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -33,6 +34,8 @@ public class Subscription {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+    @Column(name = "operation_nature", length = 50)
     @Enumerated(EnumType.STRING) // Pour stocker l'énum en texte
     private StatutAbonnement status; // active, expired, pending,trial
 

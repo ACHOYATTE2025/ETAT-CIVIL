@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import com.saasdemo.backend.entity.Area;
 import com.saasdemo.backend.entity.Subscription;
+import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.enums.StatutAbonnement;
 
 
@@ -45,6 +46,9 @@ Optional<Subscription> findActiveByCommune(@Param("commune") Area commune);
 
 
   Page<Subscription> findAllByCommune(Area commune, Pageable pageable);
+
+
+  Optional<Subscription> findByUsersNameAndActiveTrueAndEndDateAfter(String username, LocalDateTime now);
   
 
 

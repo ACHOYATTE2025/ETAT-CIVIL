@@ -33,7 +33,7 @@ public class SubscriptionGuardFilter extends OncePerRequestFilter {
         "/authentification/**",
         "/public/**",
         "/actuator",
-        "/api/etatcivil/v1/souscriptions",
+        "/api/etatcivil/v1/souscriptions/**",
         "/swagger-ui",
         "/swagger-ui/",
         "/swagger-ui/index.html",
@@ -82,7 +82,7 @@ public class SubscriptionGuardFilter extends OncePerRequestFilter {
             "ABONNEMENT INACTIF OU EXPIRE");
     return;
             }else {
-            log.info("✅ Abonnement valide trouvé : {}", subscription.get().getId());
+            log.info("✅ Abonnement valide trouvé : {}", subscription.get().getStatus());
         }
 
         filterChain.doFilter(request, response);
