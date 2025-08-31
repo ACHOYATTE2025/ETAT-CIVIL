@@ -138,7 +138,7 @@ private final PdfService pdfService;
     }
   )
 @PostMapping("/login")
-public ResponseEntity<ResponseDto> loginAdmin(@Valid @RequestBody LoginAdminRequest loginAdmin){
+public ResponseEntity<ResponseDto> login(@Valid @RequestBody LoginAdminRequest loginAdmin){
    return (ResponseEntity<ResponseDto>) this.authService.loginService(loginAdmin);
 }
 
@@ -165,7 +165,7 @@ public ResponseEntity<ResponseDto> loginAdmin(@Valid @RequestBody LoginAdminRequ
     }
   )
 //@PreAuthorize("hasAnyRole('ADMIN','USER')")
-@PostMapping("/activationLogin")
+@PostMapping("/loginvalidation")
 public SignupResponse loginActivation(@RequestBody ActiveCodeRequest activationLogin) {
       return this.authService.activationLogin(activationLogin);
        }

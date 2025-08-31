@@ -27,6 +27,7 @@ import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.service.BirthService;
 import com.saasdemo.backend.service.PdfService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -59,8 +60,12 @@ public class BirthController {
   /*==============================================*/
 
 //Creer un Extrait de Naissance
+ @Operation(
+    summary="REST API to create new birth certificate  into APP ETAT CIVIL",
+    description = "REST API to create  new birth certificate  inside ETAT CIVIL App "
+  )
 
-@PostMapping(path="/BirthCertificateCreation")
+@PostMapping(path="/birthCertificatecreation")
 public  ResponseEntity<ResponseDto>  BirthCertificateCreation( @RequestBody BirthDtoRequest extrait ){
   ResponseEntity<ResponseDto> altris=this.birthService.BirthCreate(extrait);
   log.info("birthcreation :"+altris);
@@ -68,7 +73,11 @@ public  ResponseEntity<ResponseDto>  BirthCertificateCreation( @RequestBody Birt
   }
 
 //imprimer l'extrait de naissance crée
-@GetMapping("/birthcertificatepdf")
+ @Operation(
+    summary="REST API to print birth certificate  into APP ETAT CIVIL",
+    description = "REST API to print birth certificate  inside ETAT CIVIL App "
+  )
+@GetMapping("/birthcertificatepdfprinting")
 public ResponseEntity<byte[]> getbirthcertificatePdf() throws IOException {
     ByteArrayInputStream pdfStream = this.birthService.generateBirthCertificatepdfservice();
 
@@ -83,6 +92,10 @@ public ResponseEntity<byte[]> getbirthcertificatePdf() throws IOException {
 
 
 //Modifier un Extrait de naissance
+ @Operation(
+    summary="REST API to update birth certificate  into APP ETAT CIVIL",
+    description = "REST API to update birth certificate  inside ETAT CIVIL App "
+  )
 @PutMapping("/updatebirth/{num}")
 public ResponseEntity<BirthDtoResponse> updateBirthCertificate(
         @PathVariable String num,
@@ -94,20 +107,32 @@ public ResponseEntity<BirthDtoResponse> updateBirthCertificate(
 
 
 //lire tous les extraits ou chercher un extrait
-@GetMapping(path="/GetBirthCertificate")
+ @Operation(
+    summary="REST API to get birth certificate  into APP ETAT CIVIL",
+    description = "REST API to get birth certificate  inside ETAT CIVIL App "
+  )
+@GetMapping(path="/getbirthcertificate")
 Stream <BirthDtoResponse> ReadBirthCertificate(@RequestParam(required = false)  String num){
   return  this.birthService.ReadBirth(num);
 }
 
 
 //lire un extrait de naissance par Id
-@GetMapping(path="/GetBirthCertificate/{id}")
+ @Operation(
+    summary="REST API to get birth certificate by id  into APP ETAT CIVIL",
+    description = "REST API to get birth certificate by id inside ETAT CIVIL App "
+  )
+@GetMapping(path="/getbirthcertificate/{id}")
 Stream <BirthDtoResponse> ReadBirthCertificateById(@Valid @RequestParam(required = true)Long id ){
   return  this.birthService.ReadBirthById(id);
 }
 
 //lire les extraits avec tri ete pagination
-@GetMapping("/ListBirthCertificatesByTri")
+ @Operation(
+    summary="REST API to get birth certificate by page,size,birthdate into APP ETAT CIVIL",
+    description = "REST API to get birth certificate by page,size,birthdate inside ETAT CIVIL App "
+  )
+@GetMapping("/listbirthcertificatesByTri")
 public ResponseEntity<Page<BirthDtoResponse>> listBirthCertificates(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size,
@@ -125,14 +150,22 @@ public ResponseEntity<Page<BirthDtoResponse>> listBirthCertificates(
 
 
 //suprimmer un certifcat de naissance
-@DeleteMapping(path="/birthCertificateDeletion")
+ @Operation(
+    summary="REST API to delete birth certificate  into APP ETAT CIVIL",
+    description = "REST API to delete  birth certificate  inside ETAT CIVIL App "
+  )
+@DeleteMapping(path="/birthcertificatedeletion")
 @PreAuthorize("hasRole('ADMIN')")
 private  ResponseEntity<ResponseDto>  deathCertificateDeletion(){
    return this.birthService.Birthdeletion();
 }
 
 //suprimmer un extrait de naissance par Id
-@DeleteMapping(path="/birthCertificateDeletionbyid/{id}")
+ @Operation(
+    summary="REST API to delete birth certificate by id into APP ETAT CIVIL",
+    description = "REST API to delete birth certificate by id inside ETAT CIVIL App "
+  )
+@DeleteMapping(path="/birthcertificatedeletionbyid/{id}")
 @PreAuthorize("hasRole('ADMIN')")
 private ResponseEntity<ResponseDto> BirthCertificateDeletionbyid(@Valid @RequestParam(required = true)Long id){
    return this.birthService.Birthdeletionid(id);

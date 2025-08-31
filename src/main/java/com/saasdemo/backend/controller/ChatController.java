@@ -20,6 +20,7 @@ import com.saasdemo.backend.security.TenantContext;
 import com.saasdemo.backend.service.ChatService;
 import com.saasdemo.backend.util.JwtUtil;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Tag(
   name = "TCHAT_CONTROLLER   REST Api for ETAT CIVIL",
-  description="TCHAT_CONTROLLER  REST Api in  ETAT CIVIL APP to CREATE,READ,UPDATE,DELETE  details"
+  description="TCHAT_CONTROLLER  REST Api in  ETAT CIVIL APP TO TCHAT "
 )
 public class ChatController {
       private final ChatService chatService;
@@ -45,6 +46,10 @@ public class ChatController {
     
       
     //envoie de message
+    @Operation(
+    summary="REST API to send message in Tchat into APP ETAT CIVIL",
+    description = "REST API to send message in Tchat inside ETAT CIVIL App "
+  )
     @PostMapping("/send")
     public ResponseEntity<String> sendMessage(  @RequestParam String message) {
       Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -67,6 +72,10 @@ public class ChatController {
 
 
      // Récupère l'historique des messages pour un tenant donné
+     @Operation(
+    summary="REST API to get all messages of Tchat into APP ETAT CIVIL",
+    description = "REST API to get all messages of Tchat inside ETAT CIVIL App "
+  )
     @GetMapping("/messages")
     public List<ChatMessage> getMessages() {
       Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -76,6 +85,10 @@ public class ChatController {
 
 
    //Récupère l'historique des messages pour un tenant donné dans un temps precis  
+   @Operation(
+    summary="REST API to get messages in time definied in Tchat into APP ETAT CIVIL",
+    description = "REST API to get messages in time definied in Tchat inside ETAT CIVIL App "
+  )
     @GetMapping("/messages/since")
     public List<ChatMessage> getMessagesSince(@RequestParam("since") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant since) {
       Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -86,6 +99,10 @@ public class ChatController {
 
 
     //liste des users
+    @Operation(
+    summary="REST API to get all users in Tchat into APP ETAT CIVIL",
+    description = "REST API to get all users in Tchat inside ETAT CIVIL App "
+  )
     @GetMapping("/users")
     public ResponseEntity<Set<String>> listConnectedUsers() {
       Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -96,6 +113,10 @@ public class ChatController {
 
 
     //se connecter
+    @Operation(
+    summary="REST API to connect user in Tchat into APP ETAT CIVIL",
+    description = "REST API to connect user in Tchat inside ETAT CIVIL App "
+  )
     @PostMapping("/connect")
     public ResponseEntity<Boolean> connect() {
       Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -109,6 +130,10 @@ public class ChatController {
 
 
     //se deconnecter
+    @Operation(
+    summary="REST API to logout user in Tchat into APP ETAT CIVIL",
+    description = "REST API to logout user in Tchat  inside ETAT CIVIL App "
+  )
     @PostMapping("/disconnect")
     public ResponseEntity<Void> disconnect() {
       Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -119,6 +144,10 @@ public class ChatController {
     }
 
   // voir si un user est connecté
+  @Operation(
+    summary="REST API to check connected user in Tchat into APP ETAT CIVIL",
+    description = "REST API to check connected user in Tchat inside ETAT CIVIL App "
+  )
     @GetMapping("/status")
     public boolean isConnected() {
       Utilisateur user = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

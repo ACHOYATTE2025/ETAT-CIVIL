@@ -177,13 +177,13 @@ public class SubscriptionService {
     // ----------------- Méthodes Paystack -------------------
 
     public String initializePaystackPayment(SubscriptionDTO dto) {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+               Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!(principal instanceof Utilisateur admin)) {
             throw new RuntimeException("Utilisateur non authentifié correctement.");
         }
         this.admin = admin;
 
-   
+       //dto.setAmount(fcfaToKobo(dto.getAmount()));
 
         String url = baseUrl + "/transaction/initialize";
 
@@ -212,7 +212,7 @@ public class SubscriptionService {
 
 public Subscription verifyPaystackPayment() {
 
-    String url = baseUrl + "/transaction/verify/" + reference;
+     String url = baseUrl + "/transaction/verify/" + reference;
 
     HttpHeaders headers = new HttpHeaders();
     headers.setBearerAuth(secretKey);

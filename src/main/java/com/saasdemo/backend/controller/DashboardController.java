@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 @Tag(
   name = "DASHBOARD_CONTROLLER   REST Api for ETAT CIVIL",
-  description="DASHBOARD_CONTROLLER  REST Api in  ETAT CIVIL APP to CREATE,READ,UPDATE,DELETE  details"
+  description="DASHBOARD_CONTROLLER  REST Api in  ETAT CIVIL APP TO SHOW STATS "
 )
 public class DashboardController {
 

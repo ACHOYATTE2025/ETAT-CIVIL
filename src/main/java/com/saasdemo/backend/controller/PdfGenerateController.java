@@ -24,6 +24,7 @@ import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.service.PdfService;
 import com.saasdemo.backend.service.SubscriptionService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -44,8 +45,12 @@ public class PdfGenerateController {
 
 
 //generate ticket of subscription
+ @Operation(
+    summary="REST API to print subsctiption pdf ticket  into APP ETAT CIVIL",
+    description = "REST API to print subscription ticket  inside ETAT CIVIL App "
+  )
 @PreAuthorize("hasRole('ADMIN')")
-@GetMapping("/subscriptionpdf")
+@GetMapping("/subscriptionpdfprinting")
 public ResponseEntity<byte[]> getSubscriptionPdf() throws IOException {
     ByteArrayInputStream pdfStream = this.pdfService.generateSubscriptionPdf();
 
@@ -60,7 +65,11 @@ public ResponseEntity<byte[]> getSubscriptionPdf() throws IOException {
 
 
 //generate  list of Subscription
-@GetMapping("/subscriptionsallpdf")
+ @Operation(
+    summary="REST API to print all subscription pdf ticket  into APP ETAT CIVIL",
+    description = "REST API to print all subscription pdf ticket inside ETAT CIVIL App "
+  )
+@GetMapping("/subscriptionsallpdfprinting")
 @PreAuthorize("hasRole('SUPERADMIN')")
 public ResponseEntity<byte[]> getAllSubscriptionPdf() throws Exception {
     ByteArrayInputStream pdfStream = this.pdfService.generateAllSubscriptionCommunePdf();
@@ -76,7 +85,11 @@ public ResponseEntity<byte[]> getAllSubscriptionPdf() throws Exception {
 
 
 
-// List des souscriptions par tri dynzmique
+// List des souscriptions par tri dynamique
+ @Operation(
+    summary="REST API to print subscription pdf by sort  into APP ETAT CIVIL",
+    description = "REST API to print subscription pdf by sort inside ETAT CIVIL App "
+  )
 
 @PreAuthorize("hasRole('ADMIN')")
 @GetMapping("/subscriptionslistbytri")
@@ -101,9 +114,12 @@ public ResponseEntity<Page<com.saasdemo.backend.entity.Subscription>> listSubscr
 
 
 //======================================================================================================
-
+ @Operation(
+    summary="REST API to print all birth certificate pdf into APP ETAT CIVIL",
+    description = "REST API to print all birth certifcate  inside ETAT CIVIL App "
+  )
 @PreAuthorize("hasRole('ADMIN')")
-@GetMapping("/allbirthcertifcatespdf")
+@GetMapping("/allbirthcertifcatespdfprinting")
 public ResponseEntity<byte[]> getAllBirthCertificatesPdf() throws IOException {
     List<ByteArrayInputStream> pdfStreams = this.pdfService.generateAllBirthCertificatePdf();
 
