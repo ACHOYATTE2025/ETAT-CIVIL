@@ -103,7 +103,7 @@ public ResponseEntity<Page<com.saasdemo.backend.entity.Subscription>> listSubscr
 //======================================================================================================
 
 @PreAuthorize("hasRole('ADMIN')")
-@GetMapping("/allbirthcertifcates")
+@GetMapping("/allbirthcertifcatespdf")
 public ResponseEntity<byte[]> getAllBirthCertificatesPdf() throws IOException {
     List<ByteArrayInputStream> pdfStreams = this.pdfService.generateAllBirthCertificatePdf();
 

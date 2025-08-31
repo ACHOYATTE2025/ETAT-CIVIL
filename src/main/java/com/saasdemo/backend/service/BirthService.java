@@ -144,7 +144,7 @@ public class BirthService {
 
 //generer le pdf d'un certificat venant d'être créer
 public ByteArrayInputStream generateBirthCertificatepdfservice(){
-    return this.pdfService.generateBirthCertificatepdf(extros);
+    return this.pdfService.generateBirthCertificatePdf(extros);
 }
 
 //=========================================================================================================================================================  

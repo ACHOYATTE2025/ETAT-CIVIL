@@ -35,6 +35,8 @@ public class Subscription {
     private Long id;
 
 
+    private String numero;
+
     @Column(name = "operation_nature", length = 50)
     @Enumerated(EnumType.STRING) // Pour stocker l'énum en texte
     private StatutAbonnement status; // active, expired, pending,trial

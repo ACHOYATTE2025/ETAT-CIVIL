@@ -3,6 +3,7 @@ package com.saasdemo.backend.service;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -113,6 +114,7 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
 
       //implementer la sousscription TRIAL
       Subscription subscriptionx = Subscription.builder()
+                                  .numero(UUID.randomUUID().toString())
                                   .usersName(request.getUsername())
                                   .amount(0)
                                   .created(LocalDateTime.now())
@@ -140,6 +142,7 @@ public ResponseEntity<ResponseDto> RegisterAdminService( SignupRequest request){
 
         //save operation of registerAdmin in OPeration saving
         OperationsSaving savingx  = OperationsSaving.builder()
+                                    .NumeroActe(subscriptionx.getNumero())
                                     .name(utilisateur.getUsername())
                                     .email(utilisateur.getEmail())
                                     .operationNature(TypeOperation.ENREGISTER_UN_ADMIN)

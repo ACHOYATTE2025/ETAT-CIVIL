@@ -30,15 +30,14 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
-import com.itextpdf.kernel.pdf.extgstate.PdfExtGState;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.borders.Border;
 import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
-import com.itextpdf.layout.properties.VerticalAlignment;
 import com.saasdemo.backend.dto.SubscriptionDTO;
 import com.saasdemo.backend.entity.Area;
 import com.saasdemo.backend.entity.Birth;
@@ -47,7 +46,6 @@ import com.saasdemo.backend.entity.Utilisateur;
 import com.saasdemo.backend.repository.BirthRepository;
 import com.saasdemo.backend.repository.SubscriptionRepository;
 
-import io.jsonwebtoken.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -70,102 +68,122 @@ public PdfService (SubscriptionRepository subscriptionRepository, BirthRepositor
 }
 
 
-//generate Valid subscription ticket 
- public ByteArrayInputStream generateSubscriptionPdf() {
-        try {   
-                Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+// Pour String
+private String safe(String value) {
+    return value == null || value.trim().isEmpty() ? "Néant" : value;
+}
+
+// Pour n'importe quel objet
+private String safe(Object obj) {
+    return obj == null ? "Néant" : obj.toString();
+}
+
+
+
+
+public ByteArrayInputStream generateSubscriptionPdf() {
+        
+    try {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!(principal instanceof Utilisateur admin)) {
-        throw new RuntimeException("Utilisateur non authentifié correctement.");}
-
-                Optional<Subscription> subox = this.subscriptionRepository.findByUsersNameAndEndDateAfter(admin.getUsername(),LocalDateTime.now());
-
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-            PdfWriter writer = new PdfWriter(out);
-            PdfDocument pdf = new PdfDocument(writer);
-            Document document = new Document(pdf);
-
-            // Formatter la date
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        DateTimeFormatter formatterx = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            
-            // Font en gras
-            PdfFont bold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
-
-            // --- Titre ---
-            Paragraph title = new Paragraph("CERTIFICAT D'ABONNEMENT")
-                    .setFont(bold)
-                    .setFontSize(20)
-                    .setFontColor(ColorConstants.BLUE)
-                    .setTextAlignment(TextAlignment.CENTER);
-            document.add(title);
-
-            document.add(new Paragraph("──────────────────────────────")
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setFontColor(ColorConstants.GRAY));
-
-            // Numéro du reçu
-            document.add(new Paragraph("N° " + UUID.randomUUID().toString())
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setFontSize(10)
-                    .setFontColor(ColorConstants.GRAY));
-
-            document.add(new Paragraph("\n")); // espace
-
-            // --- Tableau centré ---
-            float[] columnWidths = {150, 250};
-            Table table = new Table(columnWidths)
-                    .setHorizontalAlignment(HorizontalAlignment.CENTER); // <-- tableau centré
-            table.setTextAlignment(TextAlignment.LEFT);
-            table.setVerticalAlignment(VerticalAlignment.MIDDLE);
-
-            addTableRow(table, "Utilisateur:", subox.get().getUsersName(), bold);
-            addTableRow(table, "Organisation:", subox.get().getCommune().getNameCommune(), bold);
-            addTableRow(table, "Montant:", subox.get().getAmount() + " Fcfa", bold);
-            addTableRow(table, "Statut:", "ACTIF ✅", bold, ColorConstants.GREEN);
-            addTableRow(table, "Date d'émission:", subox.get().getCreated().format(formatter), bold);
-            addTableRow(table, "Validité:",subox.get().getEndDate().format(formatterx), bold);
-
-            document.add(table);
-
-            document.add(new Paragraph("\n")); // espace
-
-            // Footer
-            Paragraph footer = new Paragraph("Merci pour votre confiance !\nPour toute assistance, contactez-nous.")
-                    .setFontSize(10)
-                    .setFontColor(ColorConstants.GRAY)
-                    .setTextAlignment(TextAlignment.CENTER);
-            document.add(footer);
-
-            document.close();
-
-            return new ByteArrayInputStream(out.toByteArray());
-
-        } catch (IOException | java.io.IOException e) {
-            throw new RuntimeException("Erreur lors de la génération du PDF", e);
+            throw new RuntimeException("Utilisateur non authentifié correctement.");
         }
-    }
 
-    // Méthode utilitaire pour ajouter une ligne au tableau
-    private void addTableRow(Table table, String key, String value, PdfFont bold) {
-        addTableRow(table, key, value, bold, null);
-    }
+        Optional<Subscription> subOpt = this.subscriptionRepository
+                .findByUsersNameAndEndDateAfter(admin.getUsername(), LocalDateTime.now());
 
-    private void addTableRow(Table table, String key, String value, PdfFont bold, com.itextpdf.kernel.colors.Color color) {
-        Cell keyCell = new Cell().add(new Paragraph(key).setFont(bold));
-        keyCell.setPadding(5);
-        table.addCell(keyCell);
-
-        Paragraph valueParagraph = new Paragraph(value);
-        if (color != null) {
-            valueParagraph.setFontColor(color);
+        if (subOpt.isEmpty()) {
+            throw new RuntimeException("Aucune abonnement valide trouvé.");
         }
-        Cell valueCell = new Cell().add(valueParagraph);
-        valueCell.setPadding(5);
-        table.addCell(valueCell);
-    }
 
+        Subscription sub = subOpt.get();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PdfWriter writer = new PdfWriter(out);
+        PdfDocument pdf = new PdfDocument(writer);
+        Document document = new Document(pdf, PageSize.A4);
+        document.setMargins(40, 40, 40, 40);
+
+        PdfFont bold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
+        PdfFont normal = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+
+        // --- Logo / Bandeau supérieur ---
+        try {
+            ImageData logoData = ImageDataFactory.create("src/main/resources/static/logo.png");
+            Image logo = new Image(logoData).scaleToFit(100, 50).setFixedPosition(40, pdf.getDefaultPageSize().getHeight() - 80);
+            document.add(logo);
+        } catch (Exception ignore) {}
+
+        Paragraph companyName = new Paragraph("SAAS ETAT-CIVIL")
+                .setFont(bold)
+                .setFontSize(16)
+                .setTextAlignment(TextAlignment.CENTER);
+        document.add(companyName);
+
+        document.add(new Paragraph("\n")); // espace
+
+        // --- Titre du reçu ---
+        Paragraph title = new Paragraph("REÇU D'ABONNEMENT")
+                .setFont(bold)
+                .setFontSize(18)
+                .setTextAlignment(TextAlignment.CENTER);
+        document.add(title);
+
+        document.add(new Paragraph("\n"));
+
+        // --- Numéro du reçu et date ---
+        Table infoTable = new Table(new float[]{150, 200}).useAllAvailableWidth();
+        infoTable.addCell(new Cell().add(new Paragraph("Numéro du reçu:").setFont(bold)).setBorder(Border.NO_BORDER));
+        infoTable.addCell(new Cell().add(new Paragraph(safe(sub.getNumero())).setFont(normal)).setBorder(Border.NO_BORDER));
+        infoTable.addCell(new Cell().add(new Paragraph("Date:").setFont(bold)).setBorder(Border.NO_BORDER));
+        infoTable.addCell(new Cell().add(new Paragraph(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).setFont(normal)).setBorder(Border.NO_BORDER));
+        document.add(infoTable);
+
+        document.add(new Paragraph("\n"));
+
+        // --- Informations client / abonnement ---
+        Table table = new Table(new float[]{150, 250}).useAllAvailableWidth();
+        table.addCell(new Cell().add(new Paragraph("Nom du client:").setFont(bold)).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph(sub.getUsersName()).setFont(normal)).setBorder(Border.NO_BORDER));
+
+        table.addCell(new Cell().add(new Paragraph("Organisation:").setFont(bold)).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph(sub.getCommune().getNameCommune()).setFont(normal)).setBorder(Border.NO_BORDER));
+
+        table.addCell(new Cell().add(new Paragraph("Montant payé:").setFont(bold)).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph(sub.getAmount() + " Fcfa").setFont(bold).setFontColor(ColorConstants.BLACK)).setBorder(Border.NO_BORDER));
+
+        table.addCell(new Cell().add(new Paragraph("Statut:").setFont(bold)).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph("ACTIF ✅").setFont(bold).setFontColor(ColorConstants.GREEN)).setBorder(Border.NO_BORDER));
+
+        table.addCell(new Cell().add(new Paragraph("Validité:").setFont(bold)).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph(sub.getEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).setFont(normal)).setBorder(Border.NO_BORDER));
+
+        document.add(table);
+
+        document.add(new Paragraph("\n"));
+
+        // --- Ligne signature ---
+        document.add(new Paragraph("Signature / Cachet de l’entreprise")
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setFont(bold)
+                .setMarginTop(50));
+        
+
+        // --- Footer ---
+        Paragraph footer = new Paragraph("Merci pour votre confiance ! Pour toute assistance, contactez-nous au +225 XXX XXX XXX")
+                .setFont(normal)
+                .setFontSize(10)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setMarginTop(30);
+        document.add(footer);
+
+
+        document.close();
+        return new ByteArrayInputStream(out.toByteArray());
+
+    } catch (Exception e) {
+        throw new RuntimeException("Erreur génération PDF : " + e.getMessage(), e);
+    }
+}
 
 
 
@@ -260,6 +278,16 @@ public ByteArrayInputStream generateAllSubscriptionCommunePdf() {
 
     //generate all subscriptions of commune
 
+    private void addTableRow(Table table, String string, String string2, PdfFont bold, Object object) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'addTableRow'");
+}
+
+    private void addTableRow(Table table, String string, String usersName, PdfFont bold) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'addTableRow'");
+}
+
     public ByteArrayInputStream generateAllSubscriptionPdf() throws Exception{
 
         ByteArrayInputStream pdfStreams = generateAllSubscriptionCommunePdf();
@@ -283,10 +311,8 @@ public Page<Subscription> getSubscriptionsByCommune(
 
 
 //===========================================================================================================
-
-public ByteArrayInputStream generateBirthCertificatepdf(Birth birx) {
+public ByteArrayInputStream generateBirthCertificatePdf(Birth birx) {
     try {
-        // --- Vérification utilisateur ---
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!(principal instanceof Utilisateur admin)) {
             throw new RuntimeException("Utilisateur non authentifié correctement.");
@@ -299,7 +325,6 @@ public ByteArrayInputStream generateBirthCertificatepdf(Birth birx) {
         }
         Birth birth = birthOpt.get();
 
-        // --- Initialisation PDF ---
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PdfWriter writer = new PdfWriter(out);
         PdfDocument pdf = new PdfDocument(writer);
@@ -309,12 +334,12 @@ public ByteArrayInputStream generateBirthCertificatepdf(Birth birx) {
         PdfFont fontNormal = PdfFontFactory.createFont(StandardFonts.HELVETICA);
         PdfFont fontBold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
 
-        // --- Page et bandeau tricolore ---
         PdfPage page = pdf.addNewPage();
         Rectangle pageSize = page.getPageSize();
         PdfCanvas canvas = new PdfCanvas(page);
-        float bandeauHeight = 20;
 
+        // --- Bandeau tricolore ---
+        float bandeauHeight = 20;
         canvas.setFillColor(new DeviceRgb(255, 127, 0)); // Orange
         canvas.rectangle(pageSize.getLeft(), pageSize.getTop() - bandeauHeight, pageSize.getWidth()/3, bandeauHeight);
         canvas.fill();
@@ -327,124 +352,98 @@ public ByteArrayInputStream generateBirthCertificatepdf(Birth birx) {
         canvas.rectangle(pageSize.getLeft() + 2*pageSize.getWidth()/3, pageSize.getTop() - bandeauHeight, pageSize.getWidth()/3, bandeauHeight);
         canvas.fill();
 
-        // --- Filigrane centré et incliné ---
+        // --- Armorie visible ---
+        try {
+            ImageData logoImg = ImageDataFactory.create("src/main/resources/static/armorie.png");
+            Image logo = new Image(logoImg);
+            logo.scaleToFit(80, 80);
+            float xLogo = (pageSize.getWidth() - logo.getImageScaledWidth()) / 2;
+            float yLogo = pageSize.getTop() - bandeauHeight - 100;
+            logo.setFixedPosition(xLogo, yLogo);
+            document.add(logo);
+        } catch (Exception ignored) {}
+
+        // --- Filigrane éléphant ---
         try {
             ImageData watermarkImg = ImageDataFactory.create("src/main/resources/static/elephant.png");
             Image watermark = new Image(watermarkImg);
-
-            // Taille et position
             watermark.scaleToFit(250, 250);
             float x = (pageSize.getWidth() - watermark.getImageScaledWidth()) / 2;
             float y = (pageSize.getHeight() - watermark.getImageScaledHeight()) / 2;
             watermark.setFixedPosition(x, y);
-
-            // Rotation et opacité
             watermark.setRotationAngle(Math.toRadians(-20));
-            PdfExtGState gs = new PdfExtGState().setFillOpacity(0.05f);
-            watermark.getAccessibilityProperties(); // obligatoire pour certaines versions
+            watermark.setOpacity(0.05f);
             document.add(watermark);
-        } catch (Exception ignore) {}
+        } catch (Exception ignored) {}
 
         // --- En-tête officiel ---
         document.add(new Paragraph("REPUBLIQUE DE CÔTE D’IVOIRE")
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFont(fontBold)
                 .setFontSize(14)
-                .setFontColor(ColorConstants.BLACK));
+                .setFontColor(new DeviceRgb(255,127,0))); // orange
         document.add(new Paragraph("Union – Discipline – Travail")
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFont(fontBold)
                 .setFontSize(11)
-                .setFontColor(new DeviceRgb(0, 128, 0))); // Vert
-        document.add(new Paragraph("\nEXTRAIT DE NAISSANCE")
+                .setFontColor(new DeviceRgb(0,128,0))); // vert
+        document.add(new Paragraph("EXTRAIT DE NAISSANCE")
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFont(fontBold)
                 .setFontSize(14)
                 .setUnderline()
                 .setMarginBottom(20));
 
-        // --- Partie administrative centrée ---
+        // --- Partie administrative et narratif en noir ---
         document.add(new Paragraph("Centre d’état civil : " + birth.getLieuDelivrance())
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFont(fontBold)
                 .setFontSize(11)
-                .setFontColor(new DeviceRgb(255, 127, 0))); // Orange
+                .setFontColor(ColorConstants.BLACK));
         document.add(new Paragraph("Acte n° " + birth.getNumeroExtrait()
                 + " du registre de l’année " + birth.getDateNaissance().getYear())
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFont(fontBold)
                 .setFontSize(11)
-                .setFontColor(new DeviceRgb(0, 128, 0)) // Vert
+                .setFontColor(ColorConstants.BLACK)
                 .setMarginBottom(15));
 
-        // --- Corps narratif centré ---
+        String dateNaissance = birth.getDateNaissance().getDayOfMonth() + " " +
+                birth.getDateNaissance().getMonth() + " " + birth.getDateNaissance().getYear();
         document.add(new Paragraph(
-                "Le " + birth.getDateNaissance().getDayOfMonth() + " "
-                        + birth.getDateNaissance().getMonth() + " "
-                        + birth.getDateNaissance().getYear()
-                        + " est né(e) à " + birth.getLieuNaissance()
-                        + " l’enfant " + birth.getNomComplet()
-        ).setTextAlignment(TextAlignment.CENTER)
+                "Le " + dateNaissance + " est né(e) à " + birth.getLieuNaissance() +
+                ", l’enfant " + birth.getNomComplet() + ".")
+                .setTextAlignment(TextAlignment.CENTER)
                 .setFont(fontBold)
                 .setFontSize(11)
                 .setFontColor(ColorConstants.BLACK)
                 .setMarginBottom(20));
 
-        // --- Sections encadrées Père / Mère avec titres colorés ---
-        Table fatherTable = new Table(1).useAllAvailableWidth();
-        fatherTable.setMarginBottom(10);
-        fatherTable.addCell(new Cell().add(new Paragraph("Informations sur le père")
-                .setFont(fontBold)
-                .setFontColor(new DeviceRgb(255, 127, 0)))
-                .setBackgroundColor(ColorConstants.BLACK)
-                .setTextAlignment(TextAlignment.LEFT));
-        fatherTable.addCell(new Cell().add(new Paragraph("Nom : " + getOrNeant(birth.getNomPere()))
-                .setFont(fontBold).setFontColor(ColorConstants.BLACK)));
-        fatherTable.addCell(new Cell().add(new Paragraph("Profession : " + getOrNeant(birth.getProfessionPere()))
-                .setFont(fontBold).setFontColor(ColorConstants.BLACK)));
-        fatherTable.addCell(new Cell().add(new Paragraph("Domicile : " + getOrNeant(birth.getDomicilePere()))
-                .setFont(fontBold).setFontColor(ColorConstants.BLACK)));
-        fatherTable.addCell(new Cell().add(new Paragraph("Nationalité : " + getOrNeant(birth.getNationalitePere()))
-                .setFont(fontBold).setFontColor(ColorConstants.BLACK)));
-        document.add(fatherTable);
+        // --- Informations père / mère ---
+        document.add(new Paragraph("Informations sur le père").setFont(fontBold).setFontSize(12).setUnderline().setFontColor(ColorConstants.BLACK));
+        document.add(new Paragraph("Nom : " + getOrNeant(birth.getNomPere())).setFont(fontNormal).setFontColor(ColorConstants.BLACK));
+        document.add(new Paragraph("Profession : " + getOrNeant(birth.getProfessionPere())).setFont(fontNormal).setFontColor(ColorConstants.BLACK));
+        document.add(new Paragraph("Domicile : " + getOrNeant(birth.getDomicilePere())).setFont(fontNormal).setFontColor(ColorConstants.BLACK));
+        document.add(new Paragraph("Nationalité : " + getOrNeant(birth.getNationalitePere())).setFont(fontNormal).setFontColor(ColorConstants.BLACK));
 
-        Table motherTable = new Table(1).useAllAvailableWidth();
-        motherTable.setMarginBottom(10);
-        motherTable.addCell(new Cell().add(new Paragraph("Informations sur la mère")
-                .setFont(fontBold)
-                .setFontColor(new DeviceRgb(0, 128, 0)))
-                .setBackgroundColor(ColorConstants.BLACK)
-                .setTextAlignment(TextAlignment.LEFT));
-        motherTable.addCell(new Cell().add(new Paragraph("Nom : " + getOrNeant(birth.getNomMere()))
-                .setFont(fontBold).setFontColor(ColorConstants.BLACK)));
-        motherTable.addCell(new Cell().add(new Paragraph("Profession : " + getOrNeant(birth.getProfessionMere()))
-                .setFont(fontBold).setFontColor(ColorConstants.BLACK)));
-        motherTable.addCell(new Cell().add(new Paragraph("Domicile : " + getOrNeant(birth.getDomicileMere()))
-                .setFont(fontBold).setFontColor(ColorConstants.BLACK)));
-        motherTable.addCell(new Cell().add(new Paragraph("Nationalité : " + getOrNeant(birth.getNationaliteMere()))
-                .setFont(fontBold).setFontColor(ColorConstants.BLACK)));
-        document.add(motherTable);
+        document.add(new Paragraph("Informations sur la mère").setFont(fontBold).setFontSize(12).setUnderline().setFontColor(ColorConstants.BLACK));
+        document.add(new Paragraph("Nom : " + getOrNeant(birth.getNomMere())).setFont(fontNormal).setFontColor(ColorConstants.BLACK));
+        document.add(new Paragraph("Profession : " + getOrNeant(birth.getProfessionMere())).setFont(fontNormal).setFontColor(ColorConstants.BLACK));
+        document.add(new Paragraph("Domicile : " + getOrNeant(birth.getDomicileMere())).setFont(fontNormal).setFontColor(ColorConstants.BLACK));
+        document.add(new Paragraph("Nationalité : " + getOrNeant(birth.getNationaliteMere())).setFont(fontNormal).setFontColor(ColorConstants.BLACK));
 
-        // --- Mentions marginales ---
-        document.add(new Paragraph("Mentions")
-                .setFont(fontBold)
-                .setFontSize(12)
-                .setUnderline()
-                .setFontColor(ColorConstants.BLACK)
-                .setMarginBottom(5));
-        document.add(new Paragraph("Regime Matrimoniale: " + getOrNeant(birth.getMarie())).setFont(fontBold));
-        document.add(new Paragraph("Avec : " + getOrNeant(birth.getMarieAvec())).setFont(fontBold));
-        document.add(new Paragraph("Décision DM : " + getOrNeant(birth.getNumeroDecisionDM())).setFont(fontBold));
-        document.add(new Paragraph("Date dissolution : " + getOrNeant(birth.getDissolutionMariage())).setFont(fontBold));
-        document.add(new Paragraph("Décès : " + getOrNeant(birth.getDeces())).setFont(fontBold).setMarginBottom(15));
+        document.add(new Paragraph("Mentions").setFont(fontBold).setFontSize(12).setUnderline().setFontColor(ColorConstants.BLACK));
+        document.add(new Paragraph("Régime Matrimonial : " + getOrNeant(birth.getMarie())).setFont(fontNormal).setFontColor(ColorConstants.BLACK));
+        document.add(new Paragraph("Avec : " + getOrNeant(birth.getMarieAvec())).setFont(fontNormal).setFontColor(ColorConstants.BLACK));
+        document.add(new Paragraph("Décision DM : " + getOrNeant(birth.getNumeroDecisionDM())).setFont(fontNormal).setFontColor(ColorConstants.BLACK));
+        document.add(new Paragraph("Date dissolution : " + getOrNeant(birth.getDissolutionMariage())).setFont(fontNormal).setFontColor(ColorConstants.BLACK));
+        document.add(new Paragraph("Décès : " + getOrNeant(birth.getDeces())).setFont(fontNormal).setFontColor(ColorConstants.BLACK));
 
         // --- Pied de page ---
-        document.add(new Paragraph("Certifié conforme au registre."
-                + "Délivré le " + birth.getDateDelivrance()
+        document.add(new Paragraph("Certifié conforme au registre. Délivré le " + birth.getDateDelivrance()
                 + " à " + birth.getLieuDelivrance())
                 .setFont(fontNormal)
-                .setFontSize(10)
-                .setMarginTop(20));
+                .setFontSize(10));
         document.add(new Paragraph("L’Officier de l’État Civil")
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setFont(fontBold)
@@ -459,7 +458,7 @@ public ByteArrayInputStream generateBirthCertificatepdf(Birth birx) {
     }
 }
 
-// Utilitaire : si vide/null → "Néant"
+// Utilitaire
 private String getOrNeant(Object value) {
     if (value == null) return "Néant";
     String str = value.toString().trim();
@@ -486,7 +485,7 @@ public List<ByteArrayInputStream> generateAllBirthCertificatePdf() {
         List<ByteArrayInputStream> pdfStreams = new ArrayList<>();
 
         for (Birth abx : extraits) {
-            ByteArrayInputStream pdfStream = generateBirthCertificatepdf(abx);
+            ByteArrayInputStream pdfStream = generateBirthCertificatePdf(abx);
             pdfStreams.add(pdfStream);
         }
 

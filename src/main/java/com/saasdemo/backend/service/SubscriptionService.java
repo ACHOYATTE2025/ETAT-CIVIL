@@ -140,6 +140,7 @@ public class SubscriptionService {
             subscription.setActive(true);
         } else {
             subscription = Subscription.builder()
+                    .numero(UUID.randomUUID().toString())
                     .status(activexx)
                     .active(true)
                     .amount(dto.getAmount())
@@ -160,7 +161,7 @@ public class SubscriptionService {
                         .email(admin.getEmail())
                         .operationDate(Instant.now())
                         .operationNature(TypeOperation.CREATTION_SOUSCRIPTION)
-                        .NumeroActe(UUID.randomUUID().toString())
+                        .NumeroActe(subscription.getNumero())
                         .build();
         operationSavingRepository.save(opsave);
         log.info("operation effectuée :"+opsave);
@@ -170,12 +171,6 @@ public class SubscriptionService {
                 .body(new SouscriptionResponseDto(200, "Souscription éffectuée"));
     }
 
-//conversion fcfa en kobo
- public int fcfaToKobo(double montantFCFA) {
-            double tauxChange = 1.0 / 280; // 1 FCFA = 0.00357 NGN
-            double montantNaira = montantFCFA * tauxChange;
-            return (int) Math.round(montantNaira * 100); // en kobo
-        }
 
 
 
@@ -188,7 +183,7 @@ public class SubscriptionService {
         }
         this.admin = admin;
 
-       //dto.setAmount(fcfaToKobo(dto.getAmount()));
+   
 
         String url = baseUrl + "/transaction/initialize";
 
@@ -198,7 +193,7 @@ public class SubscriptionService {
 
         Map<String, Object> body = new HashMap<>();
         body.put("email", admin.getEmail());
-        body.put("amount", dto.getAmount()); // en kobo pour Paystack
+        body.put("amount", dto.getAmount()*100); // en kobo pour Paystack
         body.put("metadata", Map.of("username", admin.getUsername(), "tenantId", admin.getCommune().getId()));
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);

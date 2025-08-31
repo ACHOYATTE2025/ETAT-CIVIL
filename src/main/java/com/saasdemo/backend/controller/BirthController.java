@@ -94,14 +94,14 @@ public ResponseEntity<BirthDtoResponse> updateBirthCertificate(
 
 
 //lire tous les extraits ou chercher un extrait
-@GetMapping(path="/ReadBirthCertificate")
+@GetMapping(path="/GetBirthCertificate")
 Stream <BirthDtoResponse> ReadBirthCertificate(@RequestParam(required = false)  String num){
   return  this.birthService.ReadBirth(num);
 }
 
 
 //lire un extrait de naissance par Id
-@GetMapping(path="/ReadBirthCertificate/{id}")
+@GetMapping(path="/GetBirthCertificate/{id}")
 Stream <BirthDtoResponse> ReadBirthCertificateById(@Valid @RequestParam(required = true)Long id ){
   return  this.birthService.ReadBirthById(id);
 }
