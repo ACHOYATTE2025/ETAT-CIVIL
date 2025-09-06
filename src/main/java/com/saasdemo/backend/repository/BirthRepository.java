@@ -18,6 +18,8 @@ import jakarta.transaction.Transactional;
 @Transactional
 public interface BirthRepository extends JpaRepository<Birth,Long> {
 
+
+  
   //List<Birth> findByNumeroExtraitAndCommune(String numero, Area commune);
 
   List<Birth> findAllByNumeroExtraitAndCommune(String numero, Area commune);

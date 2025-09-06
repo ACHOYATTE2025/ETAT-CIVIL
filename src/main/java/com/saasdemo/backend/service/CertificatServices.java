@@ -42,8 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class BirthService {
-  private final BirthRepository extraitNaissanceRepository;
+public class CertificatServices {
+  private final BirthRepository birthRepository;
   private final RegistreRepository registreRepository;
   private final BirthDtoMapper birthDtoMapper;
   private final OperationSavingRepository OpSaving;
@@ -73,7 +73,7 @@ public class BirthService {
      //configurer le tenant
      TenantContext.setCurrentTenantId(usex.getCommune().getId());
      
-     List<Birth> Xtrait = this.extraitNaissanceRepository.findByEmailAndCommune(extrait.getEmail(),usex.getCommune());
+     List<Birth> Xtrait = this.birthRepository.findByEmailAndCommune(extrait.getEmail(),usex.getCommune());
    
    if(Xtrait.isEmpty())
       {
@@ -85,7 +85,7 @@ public class BirthService {
 
           //generation de numero d'extrait securitaire
           String numerox =UUID.randomUUID().toString();
-          Optional<Birth> actubirth = this.extraitNaissanceRepository.findByNumeroExtraitAndEmailAndCommune(numerox,usex.getEmail(), usex.getCommune());
+          Optional<Birth> actubirth = this.birthRepository.findByNumeroExtraitAndEmailAndCommune(numerox,usex.getEmail(), usex.getCommune());
 
           if (actubirth.isPresent()){throw new RuntimeException("EXTRAIT N°"+ numerox + " EXISTE DEJA");}
           //enregistrer un extrait
@@ -115,7 +115,7 @@ public class BirthService {
                                     .utilisateur(usex)
                                     .build();
             
-         Birth altros = this.extraitNaissanceRepository.save(extros);
+         Birth altros = this.birthRepository.save(extros);
          log.info("birth :"+altros);
 
              //save operation of register USER in OPeration saving
@@ -155,7 +155,7 @@ public ByteArrayInputStream generateBirthCertificatepdfservice(){
   public ResponseEntity<BirthDtoResponse> updatebirthservice(String num,BirthDtoRequest extrait) {
    
     Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    Optional<Birth>  optionalXtrait =  this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(num,usex.getCommune());
+    Optional<Birth>  optionalXtrait =  this.birthRepository.findByNumeroExtraitAndCommune(num,usex.getCommune());
     
      //configurer le tenant
      TenantContext.setCurrentTenantId(usex.getCommune().getId());
@@ -191,7 +191,7 @@ public ByteArrayInputStream generateBirthCertificatepdfservice(){
       Xtrait.setNumeroDecisionDM(extrait.getNumeroDecisionDM());
       Xtrait.setProfessionMere(extrait.getProfessionMere());
       Xtrait.setProfessionMere(extrait.getProfessionMere());
-      Birth  saved = this.extraitNaissanceRepository.save(Xtrait);
+      Birth  saved = this.birthRepository.save(Xtrait);
 
          //save operation of register USER in OPeration saving
         OperationsSaving savingx  = OperationsSaving.builder()
@@ -222,13 +222,13 @@ public Stream<BirthDtoResponse> ReadBirth(String num) {
   Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   
   if(notEmpty)
-      { birth = this.extraitNaissanceRepository.findByNumeroExtrait(num);
+      { birth = this.birthRepository.findByNumeroExtrait(num);
         if(birth==null){throw new RuntimeException("EXTRAIT DE NAISSANCE INEXISTANT");}
      
-       return this.extraitNaissanceRepository.findByNumeroExtraitAndCommune(num,usex.getCommune())
+       return this.birthRepository.findByNumeroExtraitAndCommune(num,usex.getCommune())
               .stream()
               .map(birthDtoMapper);}
-        births = (List<Birth>) this.extraitNaissanceRepository.findAllByCommune(usex.getCommune());
+        births = (List<Birth>) this.birthRepository.findAllByCommune(usex.getCommune());
         if(births.isEmpty()){throw new RuntimeException( "AUCUN EXTRAIT DISPONIBLE") ; }
   return births.stream().map(birthDtoMapper);
           
@@ -240,7 +240,7 @@ public Stream<BirthDtoResponse> ReadBirth(String num) {
 public Stream<BirthDtoResponse> ReadBirthById(Long id) {
 
   if(id==null){throw new RuntimeException("ID non Inséré");}
-  Optional<Birth> birthd = this.extraitNaissanceRepository.findById(id);
+  Optional<Birth> birthd = this.birthRepository.findById(id);
   if(birthd.isEmpty()){throw new RuntimeException("EXTRAIT INEXISTANT!!!");}
 
   return birthd.stream().map(birthDtoMapper);
@@ -250,7 +250,7 @@ public Stream<BirthDtoResponse> ReadBirthById(Long id) {
   public Page<BirthDtoResponse> getExtraitsByCommune(Area commune, int page, int size, String sortBy, String sortDir) {
   Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
     Pageable pageable = PageRequest.of(page, size, sort);
-    return extraitNaissanceRepository.findByCommune(commune, pageable);
+    return birthRepository.findByCommune(commune, pageable);
 }
 
 //=========================================================================================================================================================  
@@ -264,7 +264,7 @@ public ResponseEntity<ResponseDto> Birthdeletion() {
   TenantContext.setCurrentTenantId(usex.getId());
   
      if(birth== null){throw new RuntimeException( "SUPPRESSION IMPOSSIBLE") ; }
-    List<Birth> births =  this.extraitNaissanceRepository.findByEmailAndCommune( birth.getEmail(), usex.getCommune());
+    List<Birth> births =  this.birthRepository.findByEmailAndCommune( birth.getEmail(), usex.getCommune());
     DEXA=births;
       if(births== null){throw new RuntimeException( "SUPPRESSION IMPOSSIBLE") ; }
  
@@ -283,7 +283,7 @@ public ResponseEntity<ResponseDto> Birthdeletion() {
         this.OpSaving.save(savingx);
 
         //delete an birth document
-        this.extraitNaissanceRepository.deleteByEmailAndCommune(birth.getEmail(), usex.getCommune());
+        this.birthRepository.deleteByEmailAndCommune(birth.getEmail(), usex.getCommune());
       Birth actos = birth;
       birth =null;
      return ResponseEntity
@@ -301,7 +301,7 @@ public ResponseEntity<ResponseDto> Birthdeletionid(Long id) {
   TenantContext.setCurrentTenantId(usex.getId());
   
      if(id== null){throw new RuntimeException( "SUPPRESSION IMPOSSIBLE") ; }
-    Birth birtho =  this.extraitNaissanceRepository.findByIdAndCommune( id, usex.getCommune());
+    Birth birtho =  this.birthRepository.findByIdAndCommune( id, usex.getCommune());
     DEXO=birtho;
       if(birtho== null){throw new RuntimeException( "SUPPRESSION IMPOSSIBLE") ; }
  
@@ -320,7 +320,7 @@ public ResponseEntity<ResponseDto> Birthdeletionid(Long id) {
         this.OpSaving.save(savingx);
 
         //delete an birth document
-        this.extraitNaissanceRepository.deleteByEmailAndCommune(birtho.getEmail(), usex.getCommune());
+        this.birthRepository.deleteByEmailAndCommune(birtho.getEmail(), usex.getCommune());
       Birth actas = birtho;
       birtho =null;
      return ResponseEntity

@@ -41,7 +41,6 @@ public class SubscriptionService {
 
   private final UtilisateurRepository utilisateurRepository;
   private final SubscriptionRepository subscriptionRepository;
-  private final PdfService pdfService;
   private final RestTemplate restTemplate = new RestTemplate();
   private final OperationSavingRepository operationSavingRepository;
 
@@ -60,7 +59,6 @@ public class SubscriptionService {
                                PdfService pdfService, OperationSavingRepository operationSavingRepository) {
         this.utilisateurRepository = utilisateurRepository;
         this.subscriptionRepository = subscriptionRepository;
-        this.pdfService = pdfService;
         this.operationSavingRepository = operationSavingRepository;
     }
 

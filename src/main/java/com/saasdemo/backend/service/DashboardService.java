@@ -10,7 +10,6 @@ import com.saasdemo.backend.enums.TypeRole;
 import com.saasdemo.backend.repository.BirthRepository;
 import com.saasdemo.backend.repository.RoleRepository;
 import com.saasdemo.backend.repository.UtilisateurRepository;
-import com.saasdemo.backend.repository.WeddingRepository;
 import com.saasdemo.backend.security.TenantContext;
 
 import lombok.RequiredArgsConstructor;
@@ -20,9 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class DashboardService {
   private final UtilisateurRepository utilisateurRepository;
   private final RoleRepository roleRepository;
- 
-  private final WeddingRepository certificatMariageRepository;
-  private final BirthRepository extraitNaissanceRepository;
+  private final BirthRepository birthRepository;
  
 
   public DashboardResponse dash() {
@@ -42,7 +39,7 @@ Long nbreADMINACTIVE = utilisateurRepository.countByRoleAndCommuneAndActive(role
 //Long nbreUSERACTIVE = utilisateurRepository.countByRoleAndCommuneAndActive(roleUser, usx.getCommune(), true);
 
 // Comptage certificats
-Long nbreExtraitNaissance = extraitNaissanceRepository.countByCommune(usx.getCommune());
+Long nbreExtraitNaissance =birthRepository.countByCommune(usx.getCommune());
 
 // Retour de la réponse
 return DashboardResponse.builder()
