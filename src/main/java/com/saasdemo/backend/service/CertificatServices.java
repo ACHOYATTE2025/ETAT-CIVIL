@@ -237,13 +237,14 @@ public Stream<BirthDtoResponse> ReadBirth(String num) {
 //=========================================================================================================================================================  
 
 //lire un extrait par Id  
-public Stream<BirthDtoResponse> ReadBirthById(Long id) {
+public Optional<BirthDtoResponse> ReadBirthById(Long id) {
 
   if(id==null){throw new RuntimeException("ID non Inséré");}
   Optional<Birth> birthd = this.birthRepository.findById(id);
   if(birthd.isEmpty()){throw new RuntimeException("EXTRAIT INEXISTANT!!!");}
 
-  return birthd.stream().map(birthDtoMapper);
+  Optional<BirthDtoResponse> alex=  birthd.map(birthDtoMapper);
+  return alex;
 }
 
   //lire les extraits avec paginations et tri

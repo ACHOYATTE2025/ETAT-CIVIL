@@ -69,7 +69,7 @@ public class Utilisateur extends BaseEntity implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(
-            new SimpleGrantedAuthority("ROLE_" + this.role.getLibele())
+            new SimpleGrantedAuthority("ROLE_" + this.role.getLibele().name())
         );
     }
 
@@ -92,4 +92,15 @@ public class Utilisateur extends BaseEntity implements UserDetails {
     public boolean isEnabled() {
         return Boolean.TRUE.equals(this.active);
     }
+
+
+    
+  public Utilisateur(String email, String password,Area commune, Role role) {
+    this.email = email;
+    this.password = password;
+    this.commune = commune;
+    this.role = role;   // important !
+}
+
+  
 }

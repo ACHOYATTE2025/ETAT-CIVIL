@@ -9,12 +9,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
+import lombok.Builder;
 import lombok.Data;
 
 @Schema(name = "Birth",
         description = "Schema to request information"
 )
 @Data
+@Builder
 public class BirthDtoRequest {
   
 

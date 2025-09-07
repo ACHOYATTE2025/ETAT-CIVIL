@@ -2,8 +2,11 @@ package com.saasdemo.backend.controller;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -51,7 +54,7 @@ public class CertificatsController {
     this.pdfService = pdfService;
   }
 
-
+    private static final Logger logger = LoggerFactory.getLogger(CertificatsController.class);
   
 
 
@@ -68,8 +71,8 @@ public class CertificatsController {
 @PostMapping(path="/birthCertificatecreation")
 public  ResponseEntity<ResponseDto>  BirthCertificateCreation( @RequestBody BirthDtoRequest extrait ){
   ResponseEntity<ResponseDto> altris=this.certificatServices.BirthCreate(extrait);
-  log.info("birthcreation :"+altris);
-  return altris;
+      logger.info("birthcreation :"+altris);
+      return altris;
   }
 
 //imprimer l'extrait de naissance crée
@@ -82,7 +85,7 @@ public ResponseEntity<byte[]> getbirthcertificatePdf() throws IOException {
     ByteArrayInputStream pdfStream = this.certificatServices.generateBirthCertificatepdfservice();
 
     byte[] pdfBytes = pdfStream.readAllBytes();
-
+    logger.info("certificate printing "+ pdfBytes);
     return ResponseEntity.ok()
             //.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=subscription.pdf") voir le fichier dans le navigateur
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=birthcertificate.pdf")
@@ -102,6 +105,7 @@ public ResponseEntity<BirthDtoResponse> updateBirthCertificate(
         @RequestBody BirthDtoRequest request) {
 
     ResponseEntity<BirthDtoResponse> updated = certificatServices.updatebirthservice(num, request);
+     logger.info("birth certificate updated N° "+ updated.getBody().getNumeroExtrait());
     return updated;
 }
 
@@ -113,7 +117,10 @@ public ResponseEntity<BirthDtoResponse> updateBirthCertificate(
   )
 @GetMapping(path="/getbirthcertificate")
 Stream <BirthDtoResponse> ReadBirthCertificate(@RequestParam(required = false)  String num){
-  return  this.certificatServices.ReadBirth(num);
+
+    Stream<BirthDtoResponse> readix = this.certificatServices.ReadBirth(num);
+     logger.info("certificate fetch N° "+ readix);
+     return readix;
 }
 
 
@@ -123,8 +130,10 @@ Stream <BirthDtoResponse> ReadBirthCertificate(@RequestParam(required = false)  
     description = "REST API to get birth certificate by id inside ETAT CIVIL App "
   )
 @GetMapping(path="/getbirthcertificate/{id}")
-Stream <BirthDtoResponse> ReadBirthCertificateById(@Valid @RequestParam(required = true)Long id ){
-  return  this.certificatServices.ReadBirthById(id);
+Optional<BirthDtoResponse> ReadBirthCertificateById(@Valid @RequestParam(required = true)Long id ){
+  Optional<BirthDtoResponse> bix = this.certificatServices.ReadBirthById(id);
+  logger.info("birth certificate fetch by id N° "+ bix);
+  return bix;
 }
 
 //lire les extraits avec tri ete pagination
@@ -141,7 +150,7 @@ public ResponseEntity<Page<BirthDtoResponse>> listBirthCertificates(
 
     Utilisateur usex = (Utilisateur) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     Page<BirthDtoResponse> extraitsPage = this.certificatServices.getExtraitsByCommune(usex.getCommune(), page, size, sortBy, sortDir);
-
+    logger.info("list of birthcertificate "+ extraitsPage.toString());
     return ResponseEntity
             .status(HttpStatus.OK)
             .body(extraitsPage);
@@ -157,7 +166,9 @@ public ResponseEntity<Page<BirthDtoResponse>> listBirthCertificates(
 @DeleteMapping(path="/birthcertificatedeletion")
 @PreAuthorize("hasRole('ADMIN')")
 private  ResponseEntity<ResponseDto>  deathCertificateDeletion(){
-   return this.certificatServices.Birthdeletion();
+    ResponseEntity<ResponseDto> birthdelete= this.certificatServices.Birthdeletion();
+    logger.info("birth certificate deleted  "+ birthdelete.getBody());
+    return birthdelete;
 }
 
 //suprimmer un extrait de naissance par Id
@@ -168,7 +179,9 @@ private  ResponseEntity<ResponseDto>  deathCertificateDeletion(){
 @DeleteMapping(path="/birthcertificatedeletionbyid/{id}")
 @PreAuthorize("hasRole('ADMIN')")
 private ResponseEntity<ResponseDto> BirthCertificateDeletionbyid(@Valid @RequestParam(required = true)Long id){
-   return this.certificatServices.Birthdeletionid(id);
+    ResponseEntity<ResponseDto> bedix =this.certificatServices.Birthdeletionid(id);
+    logger.info("bith certificate deleted by id "+ bedix.getBody());
+    return bedix;
 }
 
 
