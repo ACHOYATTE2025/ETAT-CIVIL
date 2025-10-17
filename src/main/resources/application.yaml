@@ -1,0 +1,64 @@
+# ------------------------------
+# Configuration principale (HTTP)
+# ------------------------------
+spring:
+  application:
+    name: SaasBackend
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/etatcivildb?useSSL=false&serverTimezone=UTC
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USER}
+    password: ${MAIL_PASS}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.ssl.trust: smtp.gmail.com
+
+server:
+  port: 8080
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+    min-response-size: 128
+  servlet:
+    context-path: /api/etatcivil/v1
+
+jwt:
+  key: ${JWT_SECRET}
+  expiration: 900000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+info:
+  app:
+    name: etat-civil
+    description: Application de gestion des états civils
+    version: 1.0.0
+
+paystack:
+  secret:
+    key: ${PAYSTACK_SECRET}
+  base:
+    url: https://api.paystack.co
